@@ -1,16 +1,11 @@
-BXY
+bxy 
 =============
+Pronunciation /ˈbäksē/ or boxy
 
-Install `bxy` 
+--
+Note: `bxy` is not finished & should not be used for your projects. 
 -------------
 ```
   npm uninstall bxy
-```
-
-USE
--------------
-```js
-const bxy = require('bxy')
-
 ```
 

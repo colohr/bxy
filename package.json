@@ -1,6 +1,6 @@
 {
   "name": "bxy",
-  "version": "0.0.1",
+  "version": "0.0.11",
   "description": "Proxy",
   "main": "./index.js",
   "repository": {
@@ -13,7 +13,5 @@
   "bugs": {
     "url": "https://github.com/colohr/bxy/issues"
   },
-  "homepage": "https://github.com/colohr/bxy#readme",
-  "dependencies": {},
-  "devDependencies": {}
+  "homepage": "https://github.com/colohr/bxy#readme"
 }
