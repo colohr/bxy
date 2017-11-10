@@ -1,7 +1,7 @@
 {
   "name": "bxy",
   "version": "0.0.11",
-  "description": "Proxy",
+  "description": "A bootstrap template engine",
   "main": "./index.js",
   "repository": {
     "type": "git",
