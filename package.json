@@ -1,8 +1,12 @@
 {
   "name": "bxy",
-  "version": "0.0.11",
-  "description": "A bootstrap template engine",
-  "main": "./index.js",
+  "version": "0.0.12",
+  "description": "The best collection of js snippets & snappets.",
+  "directories": {
+    "web":"web",
+    "package":"package"
+  },
+  "main": "./package/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/colohr/bxy.git"
