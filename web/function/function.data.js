@@ -1,4 +1,4 @@
-(x=>x)(async ()=>{
+(async x=>await x())(async ()=>{
 	const dot_notation = {
 		get add(){ return add_value },
 		get get(){ return get_value },

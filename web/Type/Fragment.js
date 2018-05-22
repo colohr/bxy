@@ -1,5 +1,5 @@
 (function(ExportFragment,...x){ return inputs=>ExportFragment(inputs, ...x) })
-(function ExportFragment(inputs,FragmentTools, ...x){
+(function ExportFragment(inputs=window.modules,FragmentTools, ...x){
 	const tools = x.reduce((tools, tool)=>tool(tools), FragmentTools())
 
 	class Fragment{
@@ -23,12 +23,16 @@
 			this.tag = 'custom-element-name'
 			this.document = template_document
 		}
-		get list(){ return tools.select_all(this.document, `template:not(#${this.tag})`) }
+		get list(){ return modules.element.all(this.document, `template:not(#${this.tag})`) }
 		set(element, data){ return tools.set_fragment(this,element,data) }
 		template(id){ return import_content(get_template(this.document, id)) }
 	}
 
 	//exports
+	window.modules.fragment = new Proxy(function create_fragment(...x){ return new Fragment(...x) },{
+		get(o,field){ return Fragment[field] },
+		has(o, field){ return field in Fragment }
+	})
 	return Fragment
 
 	//shared actions
@@ -63,14 +67,16 @@
 	function root_content_write(host, content, ...styles){ return (host.shadowRoot.innerHTML = content, import_styles(host, ...styles), host) }
 
 
-},function FragmentTools(){
+}, function FragmentDataTools(){
 
 	return {
 		get_notation_from_text,
-		get_value_from_data
+		get_value_from_data,
+		set_text_from_data,
+		set_attributes_from_data
 	}
 
-	//share actions
+	//shared actions
 	function get_notation_from_text(text){
 		if(text.indexOf('${') === -1) return null
 		return text.substring(text.lastIndexOf("${") + 2, text.lastIndexOf("}"))
@@ -91,13 +97,6 @@
 		}
 	}
 
-}, function FragmentElementTools(tools){
-	tools.select_all = select_all
-	return (tools.set_attributes_from_data = set_attributes_from_data, tools)
-
-	//shared actions
-	function select_all(element, selector='template', filter = ()=>true){ return Array.from(element.querySelectorAll(selector)).filter(filter) }
-
 	function set_attributes_from_data(element, data){
 		if(typeof data !== 'object' || data === null) return element
 		const attributes = element.attributes
@@ -106,23 +105,18 @@
 			const attribute = attributes.item(i)
 			const value = attribute.value
 			if(value){
-				const new_value = tools.get_value_from_data(value, data)
+				const new_value = get_value_from_data(value, data)
 				if(value !== new_value) element.setAttribute(attribute.name, new_value)
 			}
 		}
 		return element
 	}
 
-}, function FragmentTextTools(tools){
-
-	return (tools.set_text_from_data = set_text_from_data, tools)
-
-	//shared actions
 	function set_text_from_data(text, data){
-		let notation = tools.get_notation_from_text(text)
+		let notation = get_notation_from_text(text)
 		if(notation === null) return text
 		const replacer = ['\$\{', notation, '\}'].join('')
-		const value = tools.get_value_from_data(data,notation)
+		const value = get_value_from_data(data, notation)
 		text = text.replace(replacer, value)
 		return set_text_from_data(text, data)
 	}
@@ -195,7 +189,7 @@
 		return loop_nested()
 
 		function loop_nested(){
-			const repeats = tools.select_all(element, field_selector)
+			const repeats = select_all(element, field_selector)
 			const fragment_field = get_fragment_field(fragment)
 			for(const repeat of repeats){
 				const name = repeat.getAttribute('name')
@@ -206,4 +200,7 @@
 			return fragment
 		}
 	}
+
+	function select_all(element, selector = 'template', filter = ()=>true){ return Array.from(element.querySelectorAll(selector)).filter(filter) }
+
 })

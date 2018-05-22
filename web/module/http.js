@@ -1,19 +1,23 @@
 (async function define_module(...x){ const define = async (module, ...inputs)=>await window.modules.define('http', {value:await module(...inputs)}); return window.modules.has('http')?window.modules.get('http'):await (async ([module],asyncs,...inputs)=>await define(module, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1),(x=x.map(i=>i instanceof Promise?async ()=>await i:i).reduce((l, i)=>((typeof(i)==='function'&&i.constructor.name==='AsyncFunction')?l[0].push(i()):l.push(i),l),[[]]))[0], ...x.slice(1, x.length)); })
-(async function export_module(get_assets_loader,content_types){
-
+(async function export_module(content_types, get_assets_loader){
 	const loaders = [
 		async function set_modules_http(options={}){
-			//load
-			await (await get_http_resource(window.modules.directory.prototype('URL.prototype.js'), {'Content-Type': 'application/javascript'})).module
-			await (await get_http_resource(window.modules.directory.prototype('HTMLElement.prototype.js'), {'Content-Type': 'application/javascript'})).module
+			try{
+				await (await get_http_resource(window.modules.directory.base.prototype('URL.prototype.js'), {'Content-Type': 'application/javascript'})).module
+				await (await get_http_resource(window.modules.directory.base.prototype('HTMLElement.prototype.js'), {'Content-Type': 'application/javascript'})).module
+				window.modules.define('data', {value: await (await get_http_resource(window.modules.directory.base.function('function.data.js'), {'Content-Type': 'application/javascript'})).module})
+				window.modules.define('element', {value: await (await get_http_resource(window.modules.directory.base.function('function.element.js'), {'Content-Type': 'application/javascript'})).module})
+				window.modules.define('phrase', {value: await (await get_http_resource(window.modules.directory.base.function('function.phrase.js'), {'Content-Type': 'application/javascript'})).module})
+				window.modules.define('wait', {value: await (await get_http_resource(window.modules.directory.base.function('function.wait.js'), {'Content-Type': 'application/javascript'})).module})
+			}
+			catch(e){console.log(e)}
 
 			//returning value
 			return new Proxy(get_http_resource, {
 				get(o, field){
 					switch(field){
 						case 'base': return window.modules.directory.base
-						case 'assets':
-							return options.assets
+						case 'assets': return options.assets
 						case 'content':
 							return get_http_content_type(content_types, true)
 						case 'content_headers':
@@ -22,8 +26,7 @@
 							return content_types
 						case 'data':
 							return get_http_setting('post', field, {'Content-Type': 'application/json', 'Accept': 'application/json'})
-						case 'loader':
-							return options.assets_loader
+						case 'loader': return options.assets_loader
 						case 'get':
 						case 'post':
 						case 'search':
@@ -95,12 +98,20 @@
 				}
 			}
 
-			function get_http_request(load, error, {progress, canceled}){
+			function get_http_request(load, error, upload){
 				const request = new XMLHttpRequest()
-				if(progress) request.upload.addEventListener('progress', progress, false)
-				request.upload.addEventListener('load', load, false)
-				request.upload.addEventListener('error', error, false)
-				if(canceled) request.upload.addEventListener('abort', canceled, false)
+				if(upload){
+					request.upload.addEventListener('load', load, false)
+					request.upload.addEventListener('error', error, false)
+					if(typeof upload === 'object'){
+						if(upload.progress) request.upload.addEventListener('progress', upload.progress, false)
+						if(upload.canceled) request.upload.addEventListener('abort', upload.canceled, false)
+					}
+				}
+				else{
+					request.addEventListener('load', load, false)
+					request.addEventListener('error', error, false)
+				}
 				return request
 			}
 
@@ -137,32 +148,13 @@
 
 		},
 		function set_modules_assets_loader(http){
-			http.assets_loader = get_assets_loader(http, window.modules.web = {
-				get create(){ return create_element },
-				get has(){ return has_x },
-				get notation(){
-					return {
-						get notation(){ return get_notation },
-						get has(){ return has_notation }
-					}
-				},
-				get selector(){
-					return {
-						get has(){ return has_selector }
-					}
-				},
-				get when(){ return when_element }
-
-			})
+			http.assets_loader = get_assets_loader(http)
 			http.assets = http.assets_loader(window.modules)
 			return http
 		},
 		async function set_modules_assets(http){
-			await http.assets([
-					{url: http.base.function('function.dot_notation.js'), module: 'dot'},
-					{url: http.base.function('function.phrase.js'), module: 'phrase'},
-					{url: http.base.function('function.when.js'), module: 'when'},
-				], {url: http.base.Type('Fragment.js'), module: 'Fragment', inputs: [window.modules]})
+			try{ await http.assets({url: http.base.Type('Fragment.js'), module: 'Fragment'}) }
+			catch(e){console.error(e)}
 			return http
 		}
 	]
@@ -170,28 +162,7 @@
 	//exports
 	return loaders[0]().then(loaders[1]).then(loaders[2]).catch(console.error)
 
-
-	//shared actions
-	function create_element(tag, options={}, load, error, asset=null){ return (asset = document.createElement(tag),load?asset.onload=load:true,error?asset.onerror=error:true,tag==='link'?asset.rel=!options.extension||options.extension==='css'?'stylesheet':'import':true, ['async','defer',tag==='link'?'href':'src'].filter(i=>(i in options)).reduce((x, i)=>(asset[i]=options[i],x), asset)) }
-
-	function get_notation(notation, target=window, value = null){ try{ return (value = notation.split('.').reduce((o, i)=>o[i], target), typeof value !== 'undefined' && value !== null ? value:null, value) }catch(e){ return null } }
-
-	function has_element(name){ return window.customElements.get(name) === 'undefined' }
-	function has_module(name){ return window.modules.has(name) }
-	function has_notation(notation, target){ return get_notation(notation, target) !== null }
-	function has_selector(selector, container=document){ return container.querySelector(selector) !== null }
-	function has_x({element, container, module, notation, selector, tag, source, locator}){
-		if(element && has_element(element)) return true
-		if(module && has_module(module)) return true
-		if(notation && has_notation(notation)) return true
-		if(selector && has_selector(selector, container)) return true
-		if(source && has_selector(`${tag||''}[${source}="${locator||''}"]`, container)) return true
-		return false
-	}
-
-	async function when_element(...names){ return await Promise.all(names.map(name=>window.customElements.whenDefined(name))) }
-
-},function get_assets_loader(http,web){
+},function get_assets_loader(http){
 	//exports
 	return function assets_loader(results={},url=(location,origin)=>new URL(location,origin||window.location.origin)){
 		//exports
@@ -203,7 +174,7 @@
 				async function load_element(item, asset = null){
 					return new Promise(function load_element_asset(load_success, load_error){
 						return (function get_asset(options){
-							return web.has(options) ? true:(options[options.source]=item.url, document[options.container].appendChild(web.create(options.tag, options, load_success, load_error)), asset = null)
+							return has_item(options) ? true:(options[options.source]=item.url, document[options.container].appendChild(window.modules.element.create(options.tag, options, load_success, load_error)), asset = null)
 						})({get container(){ return this.tag === 'link' ? 'head':'body' }, extension: `${item.url}`.split('.').filter((x, i, l)=>i === l.length - 1)[0], get tag(){ return ['css', 'html'].includes(this.extension) ? 'link':'script' }, get source(){ return this.tag === 'link' ? 'href':'src' }, locator:item.url }) === true ? load_success():true
 					})
 				}
@@ -214,10 +185,10 @@
 					//shared actions
 					async function create_item(item){
 						if(typeof(item.url) === 'string'){
-							if(item.url.indexOf('-') > 0 && item.url.indexOf('.') === -1 && item.url.indexOf('/') === -1) return web.when_element(item.url)
+							if(item.url.indexOf('/') === -1) return window.modules.wait(item.url)
 							if(item.url.indexOf('http') !== 0) item.url = url(item.url)
 						}
-						if('wait' in item) await web.when_element(...(Array.isArray(item.wait)?item.wait:[item.wait]))
+						if('wait' in item) await window.modules.wait(...(Array.isArray(item.wait)?item.wait:[item.wait]))
 						return item.module ? load_module(item):load_element(item)
 					}
 				}
@@ -225,7 +196,7 @@
 				async function load_module(item, value = null){
 					const {calls, url, inputs, module, notation} = Object.assign({inputs: [], calls: true, url: null, module: null}, item)
 					let name = typeof(module === 'string') ? module:null
-					value = notation ? web.notation.get(notation):null
+					value = notation ? web.data.get(window, notation):null
 					if(value === null) value = await load_module_value()
 					if(name === null && typeof(value) === 'function') name = value.name
 
@@ -249,6 +220,15 @@
 				}
 			})
 		}
+	}
+	//shared actions
+	function has_item({element, container, module, notation, selector, tag, source, locator}){
+		if(element && window.modules.element.defined(element)) return true
+		if(module && window.modules.has(module)) return true
+		if(notation && window.modules.data.has(window, notation)) return true
+		if(selector && window.modules.element.has(selector, document[container])) return true
+		if(source && window.modules.element.has(`${tag || ''}[${source}="${locator || ''}"]`, document[container])) return true
+		return false
 	}
 }, async function get_content_types(){
 	return new Promise(wait_for_content)

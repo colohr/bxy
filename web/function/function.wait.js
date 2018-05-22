@@ -1,5 +1,5 @@
-(x=>x)(async function(){
-	return async function when_watcher(...x){
+(async x=>await x())(async function(){
+	return async function wait_watcher(...x){
 		const limit = 100000
 		const notations = get_notations(...x)
 		const whens = get_whens(...x)
@@ -11,9 +11,8 @@
 
 			//shared actions
 			async function on_watch_loop(){
-
 				for(const i of notations){
-					let value = 'modules' in window === false ? null:modules.dot.get(window, i)
+					let value = 'modules' in window === false ? null:window.modules.data.get(window, i)
 					if(value !== null){
 						notations.splice(0, 1)
 						if(typeof value === 'function' && value.constructor.name === 'AsyncFunction') value = await value()
@@ -30,5 +29,4 @@
 	async function when(...x){ return await Promise.all(x.map(name=>window.customElements.whenDefined(name))) }
 	function get_whens(...x){ return x.filter(i=>i.includes('-')) }
 	function get_notations(...x){ return x.filter(i=>i.includes('-')===false) }
-
 })

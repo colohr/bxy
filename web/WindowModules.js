@@ -1,17 +1,19 @@
-(async function(get_loader, get_modules, get_directory, ...x){ return await get_loader(get_modules(...x), get_directory, window.directory).then(detail=>(window.dispatchEvent(new CustomEvent('modules', {detail})), detail)) })
+(function(get_loader, get_modules, get_directory, ...x){ return get_loader(get_modules(...x), get_directory, window.directory).then(detail=>(window.dispatchEvent(new CustomEvent('modules', {detail})), detail)) })
 (async function load_assets(modules, get_directory, ...x){
 	//exports
 	if('directory' in modules === false){
-		return (modules.directory=get_directory(...x), await load_file('https://unpkg.com/bxy/web/modules/http.js'), modules)
+		const package = await window.fetch('https://unpkg.com/bxy@latest/package.json').then(x=>x.json())
+
+		return (modules.directory=get_directory(package, ...x), await load_file({async:'',defer:'',src:'https://unpkg.com/bxy/web/module/http.js'}), modules)
 	}
 	return modules
 
 	//shared actions
-	async function load_file(attributes, element = null){
+	async function load_file(attributes, element = 'script'){
 		return new Promise(function load_element_asset(load_success, load_error){
 			if(typeof element === 'string') element = document.createElement(element)
-			for(const field in attributes) element[field] = attributes[field]
-			element.onload = ()=>load_success()
+			for(const field in attributes) element.setAttribute(field,attributes[field])
+			modules.loaded = ()=>(delete modules.loaded,load_success())
 			element.onerror = e=>load_error(e)
 			return (element.localName==='link'?document.head:document.body).appendChild(element)
 		})
@@ -19,9 +21,8 @@
 }, function get_modules(get_import){
 	if('modules' in window) return window.modules
 	class WindowModules{
-		get assets(){ return this.http.assets }
-		define(name, definition){ return (Object.defineProperty(this, name, definition), this[name]) }
-		gui(element = document){ return new Proxy(element && element.shadowRoot ? element.shadowRoot:element, {get(o, field){return o.getElementById(field)}}) }
+		define(name, definition){ return (Object.defineProperty(this, name, definition), name==='http'?this.loaded():true,this[name]) }
+		get(name){ return name in this ? this[name]:null }
 		has(name){ return name in this }
 		get import(){ return get_import(this) }
 		get storage(){ return get_storage(this) }
@@ -63,8 +64,9 @@
 	}
 
 
-}, function get_directory(app_directory = {}){
-	return {
+}, function get_directory(package, app_directory = {}){
+	return Object.assign({
+		package,
 		base: {
 			component(...x){ return this.web('component', ...x) },
 			design(...x){ return this.web('design', ...x) },
@@ -74,11 +76,11 @@
 			package: new URL('https://unpkg.com/'),
 			prototype(...x){ return this.web('prototype', ...x) },
 			Type(...x){ return this.web('Type', ...x) },
-			url(...x){ return new URL(`https://unpkg.com/bxy/${x.join('/')}`) },
+			url(...x){ return new URL(`https://unpkg.com/bxy@${package.version}/${x.join('/')}`) },
 			web(...x){ return this.url('web', ...x) },
 			worker(...x){ return this.web('worker', ...x) }
 		},
-		get(notation){ return window.modules.dot.get({window}, notation) },
+		get(notation){ return window.modules.data.get({window}, notation) },
 		locator(type, ...x){
 			const locator = {name: x[1] ? x[1]:x[0]}
 			if(x[0] instanceof URL === false && locator.name in this.modules){
@@ -86,8 +88,8 @@
 				locator.notation = this.modules[locator.name].notation
 			}
 			else locator.url = x[0]
-			if(type in this.url){
-				const url = this.url[type]
+			if(type in this.url || type in this.base){
+				const url = type in this.url ? this.url[type]:this.base[type]
 				locator.url = typeof url === 'function' ? url.call(this.url, locator.url.includes('.js') === false ? `${locator.url}.js`:locator.url):new URL(locator.url, url)
 			}
 
@@ -101,11 +103,12 @@
 				notation: 'window.localforage'
 			}
 		}
-	}
+	},app_directory)
 
 }, function get_import(window_modules){
 
 	return {
+		get assets(){ return window_modules.http.assets },
 		function: load_function,
 		package: load_package,
 		web: load_web
@@ -130,7 +133,7 @@
 	async function load_package(...x){
 		const locator = window_modules.directory.locator('package', ...x)
 		if(locator.name && window_modules.has(locator.name)) return window_modules[locator.name]
-		return await window_modules.assets(locator.url).then(()=>{
+		return await window_modules.http.assets(locator.url).then(()=>{
 			if(locator.name && locator.notation){
 				return window_modules.define(locator.name, {value: window_modules.directory.get(locator.notation)})
 			}
