@@ -1,6 +1,6 @@
 {
   "name": "bxy",
-  "version": "0.0.137",
+  "version": "0.0.2",
   "description": "The best collection of js snippets & snappets.",
   "directories": {
     "web":"web",
