@@ -1,0 +1,124 @@
+#-------------------
+#https://docs.npmjs.com/files/package.json
+#-------------------
+
+#The project’s owner or author.
+author:
+  name: author name
+  email: author.email@host.com
+  url: https://author.website.com
+
+#Use the browser key instead of main for projects that are meant to be used in a browser instead of a server.
+browser: browser/entry.js
+
+#A URL where issues and bugs can be reported.
+#This will often be an URL to the Github issues page for a project.
+bugs:
+  url: https://github.com/user/repository/issues
+
+
+#This defines an array of package names that will be bundled when publishing the package.
+#In cases where you need to preserve npm packages locally
+#or have them available through a single file download,
+#you can bundle the packages in a tarball file by specifying the package names
+#in the bundledDependencies array and executing npm pack.
+#we can obtain awesome-web-framework-1.0.0.tgz file by running npm pack.
+#This file contains the dependencies renderized and super-streams which can be installed in a new project
+#by executing npm install awesome-web-framework-1.0.0.tgz.
+bundledDependencies: {}
+
+#A description for the project.
+#This is optional and is useful if you can the project to be found easily on the repository.
+description: Package description
+
+#project dependencies
+dependencies:
+  public_dependency: 0.0.1
+  file_dependency: file:../local/folder/location/
+
+#identifiers for dependency packages
+dependencies.version:
+  '2.4.2': Exactly version 2.4.2
+  '^2.4.2': The latest version compatible with version 2.4.2
+  '~2.4.2': Works for versions such as 2.4.2, 2.4.3, 2.4.4,…
+  '~2.4': This will work for versions such as 2.4, 2.5, 2.6,…
+  '2.4.x': Works with any patch version of the package’s 2.4 version
+  '2.x': Works for any minor version of the package’s 2 version
+  '>=2.4': A version greater or equal to 2.4. You can also use <, <= or >
+  '2.4.2 3.1.1': Any version between and including version 2.4.2 and version 3.1.1
+  #You can even specify multiple possible version ranges by separating each range with ||.
+
+
+devDependencies: {}
+
+#Use engines to specify specific versions of Node.js and/or npm that the project works with.
+#It takes an object with a key for node and/or npm and a value that looks like what you’d have as values for dependencies that specifies a range of versions.
+engines: {}
+
+
+#This optional key expects an array of files that are included when the project is added a dependency to another project.
+#File names/paths can use a glob pattern and when the files key is not provided a default value of ["*"] is used, which means that all the files will be included. Not to worry though, certain files/folders such as .git and nome_modules are always ignored.
+files: []
+
+
+# The URL for the home page of the project.
+homepage: http://project.com
+
+#An array of keywords to helps with finding the module on the npm repository.
+keywords: []
+
+
+#Expects a license name using its SPDX identifier.
+license: ISC #default
+
+
+#Popular licenses
+licences:
+  - ISC
+  - MIT
+  - UNLICENSED
+
+
+#The entry file for the project.
+main: package/index.js
+
+#The name for the project, which should be all lower case and URL-safe.
+#The name can be prefixed with a scope (i.e.: @angular/angular-cli)
+#Required to publicly publish to npm
+#Optional if the project is private
+name: package-name
+
+
+#If a dependency can be used, but you would like npm to proceed if it cannot be found or fails to install,
+#then you may put it in the optionalDependencies object.
+#This is a map of package name to version or url, just like the dependencies object.
+#The difference is that build failures do not cause installation to fail.
+optionalDependencies: {}
+
+#In some cases, you want to express the compatibility of your package with a host tool or library, while not necessarily doing a require of this host.
+#This is usually referred to as a plugin.
+#Notably, your module may be exposing a specific interface, expected and specified by the host documentation.
+peerDependencies: {}
+
+#If this key is set to true, the project won’t be able to be published publicly to the npm repository.
+#This is useful if you want to prevent accidentally publishing a project to the world.
+private: true
+
+repository:
+  type : git
+  url : https://github.com/npm/cli.git
+
+
+#The scripts key expects an object with script names as keys and commands as values. This is useful to specify scripts that can be run directly from the command line and that can do all sorts of things like starting your project on a local server, building for production or running your tests.
+#Chances are that scripts is where you’ll make the most manual changes in a typical package.json file.
+scripts:
+  preinstall: node preinstall.js
+  prestart: node prestart.js
+  start: node start.js
+  test: node test.js
+
+#A version number that should be understandable by node-semver.
+#This is also optional for private and required and very important for public modules.
+version: 0.0.1
+
+

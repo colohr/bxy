@@ -3,3 +3,5 @@ test
 node_modules
 npm-debug.log
 removed
+.DS_Store
+*/.DS_Store

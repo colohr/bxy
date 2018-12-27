@@ -19,26 +19,23 @@
 		static get tools(){ return tools }
 		static get write(){ return root_content_write }
 
-		constructor(template_document){
-			this.tag = 'custom-element-name'
+		constructor(template_document, tag = 'custom-element-name'){
+			this.tag = tag
 			this.document = template_document
 		}
-		get list(){ return modules.element.all(this.document, `template:not(#${this.tag})`) }
+		get list(){ return window.modules.element.all(this.document, `template:not(#${this.tag})`) }
 		set(element, data){ return tools.set_fragment(this,element,data) }
 		template(id){ return import_content(get_template(this.document, id)) }
 	}
 
 	//exports
-	window.modules.fragment = new Proxy(function create_fragment(...x){ return new Fragment(...x) },{
-		get(o,field){ return Fragment[field] },
-		has(o, field){ return field in Fragment }
-	})
+	window.modules.fragment = new Proxy(function create_fragment(...x){ return new Fragment(...x) },{get(o,field){ return Fragment[field] }, has(o, field){ return field in Fragment }})
 	return Fragment
 
-	//shared actions
+	//scoped actions
 	function get_template(o, id){ return o.getElementById(id) }
 
-	async function import_document(url){ return (await inputs.http(url, http.content_headers.html)).document }
+	async function import_document(url){ return (await inputs.http(url, inputs.http.content_headers.html)).document }
 
 	function import_content(template){ return document.importNode(template.content, true) }
 
@@ -69,6 +66,7 @@
 
 }, function FragmentDataTools(){
 
+	//exports
 	return {
 		get_notation_from_text,
 		get_value_from_data,
@@ -76,7 +74,7 @@
 		set_attributes_from_data
 	}
 
-	//shared actions
+	//scope actions
 	function get_notation_from_text(text){
 		if(text.indexOf('${') === -1) return null
 		return text.substring(text.lastIndexOf("${") + 2, text.lastIndexOf("}"))
@@ -90,7 +88,7 @@
 		catch(e){ x = get_value() }
 		return x === null || typeof x === 'undefined' ? '':x
 
-		//shared actions
+		//scope actions
 		function get_value(){
 			try{return notation.split('.').reduce((o, i)=>o[i], data)}
 			catch(e){return null}
@@ -123,13 +121,17 @@
 
 
 }, function FragmentBindTools(tools){
-	const field_selector = 'field'
+	const field_selector = 'fragment'
 	const html_fragment = Symbol('original html text fragment')
-
+	const fragment_stylesheet = document.createElement('style')
+	fragment_stylesheet.innerHTML = `${field_selector}{ display:none !important; }`
+	window.document.head.appendChild(fragment_stylesheet)
 	tools.set_fragment = set_fragment
+
+	//exports
 	return tools
 
-	//shared actions
+	//scope actions
 	function data_list(data, notation){
 		const nested_data = notation ? tools.get_value_from_data(data, notation):data
 		if(nested_data) return Array.isArray(nested_data) ? nested_data:[nested_data]
@@ -151,7 +153,7 @@
 			const element = fragment.template(id)
 			Array.from(element.children).forEach(on_element)
 			return {id, data, element}
-			//shared actions
+			//scope actions
 			function on_element(i){
 				fragment.set(i, data, true)
 				const attributes = Array.from(i.attributes)
@@ -169,13 +171,14 @@
 		loop.id = id
 		loop.set = set_field
 
+		//exports
 		return loop
 
-		//shared actions
+		//scope actions
 		function set_field(element){
 			const target = get_field_target(element, this.id)
 			target.innerHTML = ''
-			this.forEach(item=>target.appendChild(item.element))
+			this.forEach(item=>target.parentNode.insertBefore(item.element, target))
 			return fragment
 		}
 	}
@@ -186,14 +189,20 @@
 		if(html_fragment in bind_target !== true) bind_target[html_fragment] = bind_target[bind_type]
 		bind_target[bind_type] = tools.set_text_from_data(bind_target[html_fragment], data)
 
+		//exports
 		return loop_nested()
 
+		//scope actions
 		function loop_nested(){
 			const repeats = select_all(element, field_selector)
 			const fragment_field = get_fragment_field(fragment)
 			for(const repeat of repeats){
 				const name = repeat.getAttribute('name')
 				const notation = repeat.hasAttribute('import') ? null:(repeat.hasAttribute('notation') ? repeat.getAttribute('notation'):name)
+				if(repeat.hasAttribute('index')){
+					if(Array.isArray(data)) data = data.map((value,index)=>({index,'#':value}))
+					else if(typeof data !== 'object') data = {'#':data}
+				}
 				const nested_data = data_list(data, notation)
 				if(nested_data) fragment_field[name](...nested_data).set(element)
 			}

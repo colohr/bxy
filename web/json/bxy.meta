@@ -1,0 +1,80 @@
+_meta:
+  prefix: prefix-
+  prefixer: ()>
+    message=>console.log(message)
+
+dependencies:
+  module: 0.0.1
+
+main: index.js
+
+name: project
+
+private: true
+
+project:
+  default:
+    items: &project_items
+      - class
+      - component
+      - data
+      - design
+      - lex
+      - media
+      - mixin
+      - module
+      - templet
+      - tool
+      - user
+
+  domain:
+    name: domain.org
+    protocol: http
+
+  main:
+    location: webapp
+
+  locations:
+    logic:
+      assets:
+        - index.js
+      folder: version
+      items: *project_items
+      subdomain: code
+      version: 1.0.1
+
+    endpoint:
+      folder: version
+      locations:
+        files.name: file.js
+        client: client.js
+      subdomain: api
+      version: 1.0.3
+
+    app:
+      field: webapp
+      folder: version
+      subdomain: app
+      version: 1.0.12
+
+    design:
+      folder: version-design
+      subdomain: code
+      inputs:
+        - [design, colors.css]
+
+    website:
+      assets:
+        - index.js
+      folder: version-web
+      items: *project_items
+      subdomain: code
+      version: 0.0.1
+
+  subdomain:
+    - api
+    - app
+    - code
+    - www
+
+version: 0.0.1

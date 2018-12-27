@@ -1,19 +1,25 @@
 {
+  "browser": "./web/modules.js",
   "name": "bxy",
-  "version": "0.0.2",
-  "description": "The best collection of js snippets & snappets.",
+  "version": "0.1.6",
+  "dependencies": {
+    "localforage": "^1.7.3"
+  },
+  "description": "Web Modules for the Browser",
   "directories": {
-    "web":"web",
-    "package":"package"
+    "web": "web",
+    "package": "package"
   },
   "main": "./package/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/colohr/bxy.git"
   },
-  "keywords": [],
   "author": "colohr",
   "license": "ISC",
+  "peerDependencies": {
+    "express": "^4.16.4"
+  },
   "bugs": {
     "url": "https://github.com/colohr/bxy/issues"
   },

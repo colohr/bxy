@@ -1,0 +1,44 @@
+[list-scroll] {
+    max-height: 100%;
+    overflow: hidden;
+    overflow-y: scroll;
+}
+
+[list-scroll] > [list-scroll-content]{
+    outline: 0;
+    counter-reset: clusterize-counter;
+}
+
+[list-scroll] > [list-scroll-content] > * {
+    display: block;
+    position: relative;
+    box-sizing: border-box;
+}
+
+[list-scroll] > [list-scroll-content] > [list-item]{
+    cursor: pointer;
+}
+
+/**
+ * Avoid vertical margins for extra tags
+ * Necessary for correct calculations when rows have nonzero vertical margins
+ */
+.clusterize-extra-row {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* By default extra tag .clusterize-keep-parity added to keep parity of rows.
+ * Useful when used :nth-child(even/odd)
+ */
+.clusterize-extra-row.clusterize-keep-parity {
+    display: none;
+}
+
+
+
+/* Centering message that appears when no data provided
+ */
+.clusterize-no-data td {
+    text-align: center;
+}
