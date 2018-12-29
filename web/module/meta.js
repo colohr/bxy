@@ -1,11 +1,12 @@
 (async function define_module(...x){ const define = async (module, ...inputs)=>await window.modules.define('meta', {value:await module(...inputs)}); return window.modules.has('meta')?window.modules.get('meta'):await (async ([module],asyncs,...inputs)=>await define(module, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1),(x=x.map(i=>i instanceof Promise?async ()=>await i:i).reduce((l, i)=>((typeof(i)==='function'&&i.constructor.name==='AsyncFunction')?l[0].push(i()):l.push(i),l),[[]]))[0], ...x.slice(1, x.length)); })
 (async function export_module(expressions){
-
+	const symbol = Symbol('meta data')
 	class Meta{
 		get content(){ return load_content }
 		get lex(){ return window.modules.get('esprima') }
 		async import(locator){ return await import_meta(this, locator) }
 		load(content){ return this.yaml.load(content) }
+		get symbol(){return symbol }
 		text(meta){ return this.yaml.dump(meta) }
 		get yaml(){ return window.modules.get('yaml') }
 	}

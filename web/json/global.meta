@@ -1,0 +1,74 @@
+
+
+Function:
+  notations:
+    - eval
+    - isFinite
+    - isNaN
+    - parseFloat
+    - parseInt
+    - decodeURI
+    - decodeURIComponent
+    - encodeURI
+    - encodeURIComponent
+    - escape
+    - unescape
+    - require #node
+    - btoa #web
+    - atob #web
+    - typeof
+    - fetch #web
+
+
+Property:
+  description: These global properties return a simple value; they have no properties or methods.
+  values:
+    - Infinity
+    - NaN
+    - undefined
+    - null
+    #Contextual
+    - this #object
+    - self #web
+    - arguments #function
+    - global #node
+    - document #web
+    - window #web
+    - process #node
+    - module #node
+    - exports #node
+    #Prototype
+    - constructor
+    - prototype
+    #Developer
+    - console
+Token:
+  values:
+    - typeof
+    - instanceof
+    - function
+    - let
+    - var
+    - const
+    - extends
+    - static
+    - get
+    - set
+    - this
+    - class
+    #Useless
+    - enum
+    - interface
+    - import
+    - exports
+
+Type:
+  values:
+    - boolean
+    - function
+    - number
+    - object
+    - string
+    - symbol
+    - undefined
+    - bigint

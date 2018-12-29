@@ -85,8 +85,9 @@
 	}
 
 	function is_data(value){ return is_object(value) && !is_array(value) && !is_error(value) }
-	function is_date(value){ return (value instanceof Date === false ? value=new Date(value):value, isNaN(value.getTime())===false) }
-	function is_date_class(value){ return is_data(value) && Object.prototype.toString.call(value) === '[object Date]' }
+	function is_date(value){ try{value=value instanceof Date === false ? new Date(value):value}catch(e){value=null} return value !== null && isNaN(value.getTime())===false }
+	function is_date_class(value){ return is_data(value) && is_symbol(value)===false && Object.prototype.toString.call(value) === '[object Date]' }
+
 	function is_decimal(value){
 		value = is_number(value) ? value.toString():value
 		return is_text(value) && decimal_regular_expression.test(value)

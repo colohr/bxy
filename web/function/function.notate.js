@@ -4,36 +4,58 @@
 	const Annotate = annotate
 	Annotate.data = annotate_data
 	Annotate.field = annotate_data_field
+	const array_leaf = Symbol('array values are kept intact')
+	const array_data = Symbol('each array object is flattened')
+	const array_flat = Symbol('array is flattened to an object')
+	Annotate.array = annotate_array
+	Annotate.array.intact = annotate_array_intact
 
 	//exports
 	return Annotate
 
 	//scope actions
-	function annotate(data){ return (annotate_data())({}, null, data)[default_annotation_field] }
-	function annotate_data(annotation = default_annotation_field){
+	function annotate(data, array_type){ return (annotate_data(default_annotation_field, array_type))({}, null, data)[default_annotation_field] }
+	function annotate_array(data){ return annotate(data, array_data) }
+	function annotate_array_intact(data){ return annotate(data, array_leaf) }
+
+	function annotate_data(annotation = default_annotation_field, array_type=array_flat){
 		//exports
 		return (...x)=>flatten(...x)
 		//scope actions
 		function build(data, operator, field, value){
 			if(Annotation.is(value)) return build(data, value.name, `${field}.${operator}`, value.value())
-			data[operator] = data[operator] || {}
+			data[operator] = operator in data === false ? (Array.isArray(data) ? []:{}):data[operator]
 			data[operator][field] = value
 			return data
 		}
 
 		function flatten(data, field, property){
-			if(is.leaf(property)) return field ? build(data, annotation, field, property):property
-
+			if(is.leaf(property) || (window.modules.is.array(property) && array_type === array_leaf)) return field ? build(data, annotation, field, property):property
 			if(Annotation.is(property)) return build(data, property.name, field, property.value())
 
 			const fields = Object.keys(property)
-			if(!fields.length) return field ? build(data, annotation, field, property):data
+			if(!fields.length) {
+				if(window.modules.is.array(property) && array_type === array_flat){
+					return field ? build(data, annotation, field, []):data
+				}
+				return field ? build(data, annotation, field, property):data
+			}
+
+			if(window.modules.is.array(property) && array_type === array_data){
+				return field ? build(data, annotation, field, property.map(value=>{
+					if(window.modules.is.object(value) === false) return value
+					return annotate(value,array_type)
+				})):property
+			}
+			else if(window.modules.is.array(property)) build(data, annotation, field, [])
 
 
 			for(let i = 0; i < fields.length; i++){
 				const index_field = fields[i]
-				const prefix = !field ? index_field:`${field}.${index_field}`
-				flatten(data, prefix, property[index_field])
+				if(typeof index_field === 'string'){
+					const prefix = !field ? index_field:`${field}.${index_field}`
+					flatten(data, prefix, property[index_field])
+				}
 			}
 
 			return data
@@ -42,7 +64,9 @@
 
 	function annotate_data_field(data, field){ return (annotate_data(field))({}, null, data) }
 
-}, async function annotation_is(){
+
+
+	}, async function annotation_is(){
 	const {is} = window.modules
 	const types = {
 		bson: [
@@ -80,7 +104,7 @@
 
 	function is_leaf(value){ return value === null || typeof(value) === 'undefined' || is_primitive(value) || is_bson(value) }
 
-	function is_primitive(value){ return types.primitive.includes(typeof (value)) || is.array(value) || is.date(value) }
+	function is_primitive(value){ return types.primitive.includes(typeof (value)) || is.date(value) || value instanceof String || value instanceof Number }
 }, async function AnnotationClass(){
 	const {is} = window.modules
 	const annotation_value = Symbol('Annotation Value')

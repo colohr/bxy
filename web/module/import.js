@@ -9,6 +9,7 @@
 		element: load_element,
 		function: load_function,
 		json: load_json,
+		meta: load_meta,
 		mixin: load_mixin,
 		module: load_module,
 		package: load_package,
@@ -100,6 +101,25 @@
 
 	async function load_json(name){ return await load_base('json', name, 'data') }
 
+	async function load_meta(locator, cache_result = false){
+		if(window.modules.has('meta') === false) await window.modules.import('meta')
+		locator = locator instanceof URL ? locator:window_modules.directory.base.meta(locator)
+		const notation = locator.basename.replace('.meta','').replace('.yaml','')
+		if(has_meta_import()) return window.modules.dot.get(window.modules[window.modules.meta.symbol], notation)
+
+		//exports
+		return window.modules.meta.import(locator).then(set_meta_import)
+
+		//scope actions
+		function has_meta_import(){ return window.modules.meta.symbol in window.modules && window.modules.dot.has(window.modules[window.modules.meta.symbol], notation) }
+
+		function set_meta_import(data){
+			if(window.modules.is.object(data) !== true || cache_result === false) return data
+			if(window.modules.meta.symbol in window.modules === false) window.modules[window.modules.meta.symbol] = {}
+			return window.modules.dot.set(window.modules[window.modules.meta.symbol], notation, data)
+		}
+	}
+
 	async function load_mixin(name){ return await load_base('mixin', name) }
 
 	function load_module(locator){
@@ -163,6 +183,7 @@ async function Directory(){
 					return URL.join('function', get_file(file, 'js'), Directory.base)
 				},
 				json(file){ return URL.join('json', get_file(file, 'json'), Directory.base) },
+				meta(file){ return URL.join('json', get_file(file, 'meta', 'yaml'), Directory.base) },
 				mixin(file){ return URL.join('mixin', get_file(file, 'js'), Directory.base) },
 				module(file){ return URL.join('module', get_file(file, 'js'), Directory.base) },
 				get package(){ return Directory.base },
@@ -237,10 +258,13 @@ async function Directory(){
 	return window.modules.define('directory', {value:new Directory()})
 
 	//scope actions
-	function get_file(file, type){
+	function get_file(file, type, type_b){
 		if(file.includes('.')){
 			const parts = file.split('.')
 			if(parts.indexOf(type) !== parts.length-1){
+				if(type_b && parts.indexOf(type_b) === parts.length - 1){
+					return file
+				}
 				file = `${file}.${type}`
 			}
 		}

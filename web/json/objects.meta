@@ -1,0 +1,145 @@
+#Standard objects by category
+
+
+Dataset:
+  description: >
+    A. These objects represent collections of data which are ordered by an index value.
+    B. Arrays and array-like constructs.
+    C. These objects represent and interact with structured data buffers and data coded using JavaScript Object Notation (JSON).
+
+  notations:
+    - WeakMap
+    - WeakSet
+    - ArrayBuffer
+    - SharedArrayBuffer
+    - Atomics
+    - DataView
+    - Int8Array
+    - Uint8Array
+    - Uint8ClampedArray
+    - Int16Array
+    - Uint16Array
+    - Int32Array
+    - Uint32Array
+    - Float32Array
+    - Float64Array
+    - Buffer #node
+    - Blob #web
+
+Fieldset:
+  description: These objects represent collections which use keys.
+  notations:
+    - &Array Array
+    - &Object Object
+    - &Map Map
+    - &Set Set
+    - &FormData FormData #web
+    - &Headers Headers #web
+
+  properties:
+    - *Array
+    - *Object
+    - *Map
+    - *Set
+    - *FormData
+    - *Headers
+
+
+Functional:
+  notations:
+    - Function
+    - GeneratorFunction
+    - AsyncFunction
+
+Informative:
+  description: Objects that represent general events and errors.
+  notations:
+    #Errors
+    - Error
+    - EvalError
+    - InternalError
+    - RangeError
+    - ReferenceError
+    - SyntaxError
+    - TypeError
+    - URIError
+    - DOMError #web
+
+    #Events
+    - Event #web
+    - CustomEvent #web
+    - DataEvent #web
+    - UIEvent #web
+
+    - Response #web
+    - Request #web
+    - IncomingMessage #node
+    - Stream #node
+
+
+
+
+Procedure:
+  notations:
+    - Promise
+    - Generator
+    - Proxy
+    - &Worker Worker #web
+    - XMLHttpRequest #Web
+  properties:
+    - *Worker
+
+Scope:
+  notations:
+    - Window #web
+    - ShadowRoot #web
+    - Document #web
+    - DocumentFragment #web
+    - DedicatedWorkerGlobalScope #web
+    - process #node
+    - Module #node
+
+
+
+Supporting:
+  description: Additions to the ECMAScript core for language-sensitive functionalities.
+  notations:
+    - Reflect
+    - JSON
+    - Math
+    - DOMParser #web
+    - Intl
+    - Intl.Collator
+    - Intl.DateTimeFormat
+    - Intl.NumberFormat
+    - WebAssembly
+    - WebAssembly.Module
+    - WebAssembly.Instance
+    - WebAssembly.Memory
+    - WebAssembly.Table
+    - WebAssembly.CompileError
+    - WebAssembly.LinkError
+    - WebAssembly.RuntimeError
+
+Symbolic:
+  description: >
+    A. Representation of strings and support manipulating them.
+    B. Representation of numbers, dates, and mathematical calculations.
+  notations:
+    - &Number Number
+    - &Date Date
+    - &Boolean Boolean
+    - &String String
+    - RegExp
+    - Symbol
+    - &Element Element #web
+    - &HTMLElement HTMLElement #web
+    - URL #web
+    - BigInt #web & typeof 'bigint'
+  properties:
+    - *Number
+    - *Date
+    - *Boolean
+    - *String
+    - *Element
+    - *HTMLElement
