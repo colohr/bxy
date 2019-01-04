@@ -1,5 +1,5 @@
-(async function define_module(...x){ const define = async (module, ...inputs)=>await window.modules.define('is', {value:await module(...inputs)}); return window.modules.has('is')?window.modules.get('is'):await (async ([module],asyncs,...inputs)=>await define(module, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1),(x=x.map(i=>i instanceof Promise?async ()=>await i:i).reduce((l, i)=>((typeof(i)==='function'&&i.constructor.name==='AsyncFunction')?l[0].push(i()):l.push(i),l),[[]]))[0], ...x.slice(1, x.length)); })
-(async function export_module(){
+(function define(...x){const _=this.modules?this.modules:module,__=(m,...a)=>_.define?_.define('is',{value:m(...a)}):_.exports=m(...a);return _.has&&_.has('is')?_.get('is'):(([m],y,...z)=>__(m,...(y.concat(z))))(x.splice(0,1),(x=x.map(i=>Array.isArray(i)?i.map(f=>f()):i).reduce((l,i)=>(Array.isArray(i)?l[0].push(...i):l.push(i),l),[[]]))[0],...x.slice(1, x.length));})
+(function definition() {
 	const alphabet_regular_expression = /^[A-Za-z]+$/
 	const number_regular_expression = /^[0-9]+$/
 	const decimal_regular_expression = /^[-+]?[0-9]+\.[0-9]+$/
@@ -24,7 +24,6 @@
 		action: is_action,
 		array: is_array,
 		async: is_async,
-		get bool(){ return this.TF },
 		class: is_class,
 		character: is_character,
 		count: is_count,
@@ -49,7 +48,6 @@
 		promise: is_promise,
 		regular_expression: is_regular_expression,
 		set: is_set,
-		get string(){ return this.text },
 		symbol: is_symbol,
 		text: is_text,
 		TF: is_TF

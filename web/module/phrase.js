@@ -1,5 +1,5 @@
-(async function define_module(...x){ const define = async (module, ...inputs)=>await window.modules.define('phrase', {value:await module(...inputs)}); return window.modules.has('phrase')?window.modules.get('phrase'):await (async ([module],asyncs,...inputs)=>await define(module, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1),(x=x.map(i=>i instanceof Promise?async ()=>await i:i).reduce((l, i)=>((typeof(i)==='function'&&i.constructor.name==='AsyncFunction')?l[0].push(i()):l.push(i),l),[[]]))[0], ...x.slice(1, x.length)); })
-(async function export_module(expressions){
+(function define(...x){const _=this.modules?this.modules:module,__=(m,...a)=>_.define?_.define('phrase',{value:m(...a)}):_.exports=m(...a);return _.has&&_.has('phrase')?_.get('phrase'):(([m],y,...z)=>__(m,...(y.concat(z))))(x.splice(0,1),(x=x.map(i=>Array.isArray(i)?i.map(f=>f()):i).reduce((l,i)=>(Array.isArray(i)?l[0].push(...i):l.push(i),l),[[]]))[0],...x.slice(1, x.length));})
+(function definition(expressions){
 	const fields = ['capitalize', 'class', 'clean', 'count', 'dash', 'dot_notation', 'empty', 'lower', 'list', 'medial', 'original', 'path', 'phrase', 'proper', 'separate', 'source', 'slash','space' , 'symbol', 'readable', 'text', 'underscore', '_', 'upper', 'words']
 
 	//exports
@@ -130,7 +130,7 @@
 		function words(x){ return phrase(x).split(separator) }
 
 	}
-}, async function expressions(){
+}, [function expressions(){
 	return {
 		aggregators:[
 			/\+/g,
@@ -152,4 +152,4 @@
 			/\"/g
 		]
 	}
-})
+}])

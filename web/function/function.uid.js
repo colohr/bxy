@@ -1,22 +1,15 @@
-(async function define_module(...x){ const define = async (module, ...inputs)=>await window.modules.define('uid', {value:await module(...inputs)}); return window.modules.has('uid')?window.modules.get('uid'):await (async ([module],asyncs,...inputs)=>await define(module, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1),(x=x.map(i=>i instanceof Promise?async ()=>await i:i).reduce((l, i)=>((typeof(i)==='function'&&i.constructor.name==='AsyncFunction')?l[0].push(i()):l.push(i),l),[[]]))[0], ...x.slice(1, x.length)); })
-(async function export_module(){
-	const uid = get_id
-	uid.get = get_uid=>{
-		return (...x)=>{
-			let id = get_uid(...x)
-			if(id) return id
-			return get_id()
-		}
-	}
-	//exports
-	return uid
+(function define(...x){const _=this.modules?this.modules:module,__=(m,...a)=>_.define?_.define('uid',{value:m(...a)}):_.exports=m(...a);return _.has&&_.has('uid')?_.get('uid'):(([m],y,...z)=>__(m,...(y.concat(z))))(x.splice(0,1),(x=x.map(i=>Array.isArray(i)?i.map(f=>f()):i).reduce((l,i)=>(Array.isArray(i)?l[0].push(...i):l.push(i),l),[[]]))[0],...x.slice(1, x.length));})
+(function definition() {
 
-	//shared actions
-	function get_id(){
+	//exports
+	return get_id
+
+	//scope actions
+	function get_id(prefix=''){
 		let first = (Math.random() * 46656) | 0
 		let second = (Math.random() * 46656) | 0
 		first = (`000${first.toString(36)}`).slice(-3)
 		second = (`000${second.toString(36)}`).slice(-3)
-		return `${first}${second}`
+		return `${prefix}${first}${second}`
 	}
 })

@@ -1,5 +1,5 @@
-(async function define_module(...x){ const define = async (module, ...inputs)=>await window.modules.define('wait', {value:await module(...inputs)}); return window.modules.has('wait')?window.modules.get('wait'):await (async ([module],asyncs,...inputs)=>await define(module, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1),(x=x.map(i=>i instanceof Promise?async ()=>await i:i).reduce((l, i)=>((typeof(i)==='function'&&i.constructor.name==='AsyncFunction')?l[0].push(i()):l.push(i),l),[[]]))[0], ...x.slice(1, x.length)); })
-(async function export_module(){
+(function define(...x){const _=this.modules?this.modules:module,__=(m,...a)=>_.define?_.define('wait',{value:m(...a)}):_.exports=m(...a);return _.has&&_.has('wait')?_.get('wait'):(([m],y,...z)=>__(m,...(y.concat(z))))(x.splice(0,1),(x=x.map(i=>Array.isArray(i)?i.map(f=>f()):i).reduce((l,i)=>(Array.isArray(i)?l[0].push(...i):l.push(i),l),[[]]))[0],...x.slice(1, x.length));})
+(function definition() {
 	const limit = 100000
 
 	//exports
@@ -20,7 +20,7 @@
 			let count = 0
 			let results = []
 			let watching = null
-			return interval = window.setInterval(on_watch_loop, 100)
+			return interval = setInterval(on_watch_loop, 100)
 
 			//scope actions
 			async function on_watch_loop(){
@@ -42,7 +42,7 @@
 					}
 				}
 				else if(watching === null && notations.length === 0){
-					window.clearInterval(interval)
+					clearInterval(interval)
 					await when(...whens)
 					await finish(...results)
 				}

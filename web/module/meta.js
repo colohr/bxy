@@ -1,5 +1,5 @@
-(async function define_module(...x){ const define = async (module, ...inputs)=>await window.modules.define('meta', {value:await module(...inputs)}); return window.modules.has('meta')?window.modules.get('meta'):await (async ([module],asyncs,...inputs)=>await define(module, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1),(x=x.map(i=>i instanceof Promise?async ()=>await i:i).reduce((l, i)=>((typeof(i)==='function'&&i.constructor.name==='AsyncFunction')?l[0].push(i()):l.push(i),l),[[]]))[0], ...x.slice(1, x.length)); })
-(async function export_module(expressions){
+(function define(...x){const _=this.modules?this.modules:module,__=(m,...a)=>_.define?_.define('meta',{value:m(...a)}):_.exports=m(...a);return _.has&&_.has('meta')?_.get('meta'):(([m],y,...z)=>__(m,...(y.concat(z))))(x.splice(0,1),(x=x.map(i=>Array.isArray(i)?i.map(f=>f()):i).reduce((l,i)=>(Array.isArray(i)?l[0].push(...i):l.push(i),l),[[]]))[0],...x.slice(1, x.length));})
+(function definition(expressions){
 	const symbol = Symbol('meta data')
 	class Meta{
 		get content(){ return load_content }
@@ -34,7 +34,7 @@
 		return content
 	}
 
-}, async function expressions(){
+}, [function expressions(){
 	return [
 		{
 			phrase: /\(\)\>/,
@@ -42,4 +42,4 @@
 			replace: '!!js/function >'
 		}
 	]
-})
+}])

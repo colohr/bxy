@@ -1,7 +1,7 @@
 {
   "browser": "./web/modules.js",
   "name": "bxy",
-  "version": "0.1.13",
+  "version": "0.1.29",
   "dependencies": {
     "localforage": "^1.7.3"
   },

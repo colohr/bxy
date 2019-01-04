@@ -34,11 +34,11 @@
 		return window_modules.get(name)
 	}
 
-	async function load_component(name){
-		if(window_modules.has(name)) return window_modules.get(name)
+	async function load_component(name, ...definition){
+		const tag = (name instanceof URL ? name.filename:name).replace('.js','')
+		if(window_modules.is.defined(tag)) return window_modules.element.create(tag,...definition)
 		await window_modules.http.assets(window_modules.directory.base.component(name))
-		await window_modules.wait(`modules.${name}`)
-		return window_modules.get(name)
+		return window_modules.element.create(tag, ...definition)
 	}
 
 	async function load_element(url){

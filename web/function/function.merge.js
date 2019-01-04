@@ -1,5 +1,6 @@
-(FunctionMerge=>FunctionMerge())(function FunctionMerge(){
-	const is = window.modules.is
+(function define(...x){const _=this.modules?this.modules:module,__=(m,...a)=>_.define?_.define('merge',{value:m(...a)}):_.exports=m(...a);return _.has&&_.has('merge')?_.get('merge'):(([m],y,...z)=>__(m,...(y.concat(z))))(x.splice(0,1),(x=x.map(i=>Array.isArray(i)?i.map(f=>f()):i).reduce((l,i)=>(Array.isArray(i)?l[0].push(...i):l.push(i),l),[[]]))[0],...x.slice(1, x.length));})
+(function definition() {
+	const {is} = this.modules?this.modules:require('fxy')
 	merge.all = merge_all //merge object array with options
 	merge.items = merge_items //merge target & source with options
 
