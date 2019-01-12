@@ -185,12 +185,10 @@ async function get_element(script = null){
 		element.setAttribute('id', 'bxy')
 		element.base = window.document.head.querySelector('base')
 		if(!element.base) (element.base = window.document.createElement('base'), element.base.href = new URL(window.location.href))
-		if(element.base.hasAttribute('meta')) element.setAttribute('meta', element.base.getAttribute('meta'))
 		try{  element.source_url = new URL(element.getAttribute('src'));  }
 		catch(error){  element.source_url = new URL(element.getAttribute('src'), window.location.href);  }
 		if(element.source_url.pathname.includes('/web/')) element.module_url = new URL(`${element.source_url.href.split('/web/')[0]}/`)
 		else element.module_url = element.source_url
-
 		if(element.module_url.origin.includes('https://unpkg.com') && !element.module_url.href.includes('@')) element.module_url = new URL('https://unpkg.com/bxy@latest/')
 		element.url = new URL('web/', element.module_url)
 		element.package =  new URL('package.json', element.module_url)

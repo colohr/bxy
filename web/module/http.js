@@ -2,19 +2,6 @@
 (async function export_module(content_types, get_assets_loader){
 	const loaders = [
 		async function set_modules_http(options={}){
-			try{
-
-				//await (await get_http_resource(new URL(`prototype/URL.prototype.js`,window.modules.constructor.url), {'Content-Type': 'application/javascript'})).module
-				//await (await get_http_resource(window.modules.directory.base.module('is.js'), {'Content-Type': 'application/javascript'})).module
-				//await (await get_http_resource(window.modules.directory.base.function('function.data.js'), {'Content-Type': 'application/javascript'})).module
-				//await (await get_http_resource(window.modules.directory.base.function('function.phrase.js'), {'Content-Type': 'application/javascript'})).module
-				//await (await get_http_resource(window.modules.directory.base.function('function.element.js'), {'Content-Type': 'application/javascript'})).module
-				//await (await get_http_resource(window.modules.directory.base.function('function.wait.js'), {'Content-Type': 'application/javascript'})).module
-				//window.modules.define('log', {value: await (await get_http_resource(window.modules.directory.base.function('function.log.js'), {'Content-Type': 'application/javascript'})).module})
-				//await (await get_http_resource(window.modules.directory.base.prototypes('HTMLElement'), {'Content-Type': 'application/javascript'})).module
-				//await window.modules.wait('modules.element','URL.prototype.prototyped')
-			}
-			catch(e){console.log(e)}
 
 			//exports
 			return new Proxy(get_http_resource, {
@@ -122,7 +109,7 @@
 					locator.responseType = 'text'
 					locator.open(options.method || 'GET', location)
 					set_http_headers(locator, options).send(get_body())
-					//shared actions
+					//scope actions
 					function get_body(){
 						if(typeof options.body === 'object' && options.body !== null){
 							if(options.body instanceof FormData) return options.body

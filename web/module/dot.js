@@ -27,7 +27,8 @@
 	//exports
 	return window.modules.set('data', new Proxy(get_value,{
 		get(o,field){ return field in dot_notation ? dot_notation[field]:null },
-		has(o,field){ return field in dot_notation }
+		has(o,field){ return field in dot_notation },
+		ownKeys(){ return Object.getOwnPropertyNames(dot_notation) }
 	}))
 
 
@@ -50,9 +51,7 @@
 		}
 	}
 
-	function get_notation(x){
-		return is_notation(x) === false ? []:typeof x === 'string' ? x.split('.'):[x]
-	}
+	function get_notation(x){ return is_notation(x) === false ? []:typeof x === 'string' ? x.split('.'):[x] }
 
 	function get_value(data, notation){
 		const value = find_value(data,notation)

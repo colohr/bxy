@@ -21,7 +21,8 @@
 	//exports
 	return new Proxy(load_scoped_module, {
 		get(o, field){ return field in module_import ? module_import[field]:null },
-		has(o, field){ return field in module_import }
+		has(o, field){ return field in module_import },
+		ownKeys(){ return Object.getOwnPropertyNames(module_import) }
 	})
 
 	//scope actions
@@ -187,9 +188,11 @@ async function Directory(){
 				mixin(file){ return URL.join('mixin', get_file(file, 'js'), Directory.base) },
 				module(file){ return URL.join('module', get_file(file, 'js'), Directory.base) },
 				get package(){ return Directory.base },
+				prototype(file){ return URL.join('prototype', get_file(`${file}.prototype`, 'js'), Directory.base) },
 				script(file){ return URL.join('script', get_file(`${file}/index.js`, 'js'), Directory.base) },
 				type(file){ return URL.join('type', get_file(file, 'js'), Directory.base) },
-				web(file){ return URL.join(get_file(file, 'js'), Directory.base) }
+				web(file){ return URL.join(get_file(file, 'js'), Directory.base) },
+				worker(file){ return URL.join('worker',get_file(file, 'js'), Directory.base) }
 			}
 			this.url={}
 
