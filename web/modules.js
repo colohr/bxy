@@ -4,7 +4,6 @@ const π = Math.PI;
 	return await (async ([exporter], asyncs, ...inputs)=>await define_modules(exporter, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1), (x = x.map(i=>i instanceof Promise ? async ()=>await i:i).reduce((l, i)=>((typeof(i) === 'function' && i.constructor.name === 'AsyncFunction') ? l[0].push(i()):l.push(i), l), [[]]))[0], ...x.slice(1, x.length));
 	//scope actions
 	function define_modules(exporter, ...inputs){ return exporter(environment, ...inputs).then(dispatch_modules) }
-
 	async function dispatch_modules(modules){ environment.dispatchEvent(new CustomEvent('modules', {bubbles:true,composed:true,detail: modules})); }
 })(this, async function ModulesExporter(environment, element){
 	let load = ['directory']
@@ -13,6 +12,7 @@ const π = Math.PI;
 		static get base(){ return this.element.base }
 		static get url(){ return this.element.url }
 		static get version(){ return this.package.version }
+		get ['@meta'](){ return this.constructor.element.getAttribute('meta') }
 		get base(){ return this.get('project.package') || {} }
 		define(...x){ return define_module(this, ...x) }
 		get(notation){ return get_module(this, notation) }
@@ -27,6 +27,7 @@ const π = Math.PI;
 	}
 	Modules.element = element
 	Modules.package = await environment.fetch(element.package).then(x=>x.json())
+	if(element.url.href.includes('bxy@latest')) element.url = new URL(element.url.href.replace('bxy@latest', `bxy@${Modules.package.version}`))
 
 	//exports
 	return await load_assets(environment.modules = new Modules())
@@ -68,7 +69,7 @@ const π = Math.PI;
 			}
 			function set_asset(event){
 				Object.defineProperty(modules, event.type, {enumerable: false, configurable: false, value: event.detail, writable: false})
-				if(event.type === 'wait') add_asset( 'element')
+				if(event.type === 'wait') (add_asset( 'element'), evaluate_asset('prototype/Event.prototype.js'))
 				else if(event.type === 'element') add_asset('http', 'import')
 				else if(done()) set_project()
 			}

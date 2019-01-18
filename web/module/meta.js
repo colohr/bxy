@@ -2,12 +2,25 @@
 (function definition(expressions){
 	const symbol = Symbol('meta data')
 	class Meta{
+		static get load(){ return load_assets }
+		constructor(){
+			this.io = {
+				incoming: data=>this.incoming(data),
+				is(value){ return typeof value === 'string' && value.indexOf('#metadata') === 0 },
+				outgoing: data=>this.outgoing(data)
+			}
+		}
 		get content(){ return load_content }
+		data(meta_text){ return this.load(meta_text) }
+		from(meta_text){ return this.load(meta_text) } //Load data from meta text
 		get lex(){ return window.modules.get('esprima') }
 		async import(locator){ return await import_meta(this, locator) }
+		incoming(data){ return data instanceof Object === false ? this.from(data):data }
 		load(content){ return this.yaml.load(content) }
+		outgoing(data){ return data instanceof Object ? `#metadata\n${this.to(data)}`:data }
 		get symbol(){return symbol }
-		text(meta){ return this.yaml.dump(meta) }
+		text(meta){ return meta instanceof ArrayBuffer ? JSON.stringify(meta):this.yaml.dump(meta) }
+		to(meta_data){ return this.text(meta_data) } //Load meta text from data
 		get yaml(){ return window.modules.get('yaml') }
 	}
 
@@ -15,10 +28,8 @@
 	return new Meta()
 
 	//scope actions
-	async function import_meta(meta, locator, assets=[]){
-		if(!window.modules.has('esprima')) assets.push(window.modules.directory.locator('script', 'esprima'))
-		if(!window.modules.has('yaml')) assets.push(window.modules.directory.locator('script', 'yaml'))
-		if(assets.length) await window.modules.import.assets(...assets).then(()=>window.modules.wait('jsyaml','modules.esprima',true)).then(yaml=>window.modules.set('yaml',yaml))
+	async function import_meta(meta, locator){
+		await load_assets()
 		try{ return meta.load(await load_content(locator)) }
 		catch(error){
 			console.error(error)
@@ -26,11 +37,13 @@
 		}
 	}
 
+	async function load_assets(){ if(!window.modules.has('yaml')) await window.modules.import(window.modules.directory.locator('script', 'meta').url)  }
+
 	async function load_content(locator){ return await prepare_content((await window.modules.http.get(locator)).content, locator)  }
 
 	async function meta_source(){
 		const import_field = '->:'
-		const url = new URL(window.modules.constructor.element.getAttribute('meta') || arguments[1] || window.location.href)
+		const url = new URL(window.modules['@meta'] || arguments[1] || URL.base())
 		return read({ field: `@base`,name: 'base',notation: '',url: new URL(`package.meta`, url) }, arguments[0])
 		//scope actions
 		async function read(base, content){
@@ -78,12 +91,4 @@
 		return content
 	}
 
-}, [function expressions(){
-	return [
-		{
-			phrase: /\(\)\>/,
-			expression: /\(\)\>/g,
-			replace: '!!js/function >'
-		}
-	]
-}])
+}, [function expressions(){ return [{phrase: /\(\)\>/, expression: /\(\)\>/g, replace: '!!js/function >' }]}])

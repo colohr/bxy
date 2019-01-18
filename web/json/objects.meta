@@ -41,6 +41,7 @@ Fieldset:
     - *Object
     - *Map
     - *Set
+    #Not available in WorkerScope
     - *FormData
     - *Headers
 
@@ -67,8 +68,9 @@ Informative:
 
     #Events
     - Event #web
+    #Not available in safari WorkerScope
     - CustomEvent #web
-    - DataEvent #web
+    - MessageEvent #web
     - UIEvent #web
 
     - Response #web

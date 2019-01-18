@@ -1,7 +1,7 @@
 
 const default_routes = [
 	'bxy',
-	'locaforage'
+	'localforage'
 ]
 
 //exports

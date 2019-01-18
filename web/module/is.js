@@ -24,7 +24,9 @@
 		action: is_action,
 		array: is_array,
 		async: is_async,
+		callable: is_callable,
 		class: is_class,
+		constructable: is_constructable,
 		character: is_character,
 		count: is_count,
 		data: is_data,
@@ -71,8 +73,22 @@
 	function is_array(value){ return is_object(value) && Array.isArray(value) }
 	function is_async(value){ return is_function(value) && value.constructor.name === 'AsyncFunction' }
 
+	function is_callable(value){
+		if(is_function(value)){
+			try{ return (value(), true) }
+			catch(e){ return false }
+		}
+		return false
+	}
 	function is_character(value){ return is_text(value) && value.length === 1 }
-	function is_class(value){ return is_function(value) && !is_action(value) }
+	function is_class(value){
+		if(is_function(value) && is_async(value) === false){
+			try{ return value.toString().indexOf('class ') === 0 }
+			catch(error){}
+		}
+		return false
+	}
+	function is_constructable(value){ return is_function(value) && is_async(value) === false && is_not(value, 'prototype') === false && value.name.length > 0 }
 	function is_count(value,count = 1){
 		if(is_nothing(value)) return false
 		if(is_text(value)) value = value.trim()

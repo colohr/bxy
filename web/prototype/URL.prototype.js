@@ -1,7 +1,8 @@
 (function define(definition, UrlPrototype){ return 'prototyped' in URL ? null:definition(UrlPrototype)})
 (function definition(UrlPrototype){
 	//exports
-	URL.prototyped = 0.05
+	URL.base = ()=>get_window_location()
+	URL.prototyped = 0.06
 	URL.fragments = get_fragments
 	URL.is = is_external_locator
 	URL.join = function join_url(...x){return new URL(x.filter(i=>!(i instanceof URL)).join('/'), x.filter(i=>i instanceof URL)[0] || get_window_location()) }
