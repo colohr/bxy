@@ -5,14 +5,16 @@ const π = Math.PI;
 	//scope actions
 	function define_modules(exporter, ...inputs){ return exporter(environment, ...inputs).then(dispatch_modules) }
 	async function dispatch_modules(modules){ environment.dispatchEvent(new CustomEvent('modules', {bubbles:true,composed:true,detail: modules})); }
-})(this, async function ModulesExporter(environment, element){
-	let load = ['directory']
-
+})(this, async function ModulesExporter(environment, element, Project, Cookie, Logger){
+	let load = []
 	class Modules{
 		static get base(){ return this.element.base }
 		static get url(){ return this.element.url }
 		static get version(){ return this.package.version }
 		get ['@meta'](){ return this.constructor.element.getAttribute('meta') }
+		get ['@modules'](){ return this.get('@package.modules')  }
+		get ['@package'](){ return this.constructor.package }
+		get ['@url'](){ return this.constructor.url }
 		get base(){ return this.get('project.package') || {} }
 		define(...x){ return define_module(this, ...x) }
 		get(notation){ return get_module(this, notation) }
@@ -20,9 +22,9 @@ const π = Math.PI;
 		get let(){ return let_module(this) }
 		get locations(){ return this.get('project') || {} }
 		set(notation, module){ return set_module(this, notation, module) }
-		get storage(){ return get_storage(this) }
+		get storage(){ return this.import.storage() }
 		tick(action){  return window.setTimeout(action,10) }
-		get url(){ return (notation, ...locator)=>this.has(`project.${notation}`) ? URL.join(this.get(`project.${notation}`), ...locator):URL.join(notation, ...locator) }
+		get url(){ return URL.get }
 		get window_locator(){ return window.location.href.replace(`${window.location.search}`, '').replace(`${window.location.hash}`, '') }
 	}
 	Modules.element = element
@@ -34,7 +36,6 @@ const π = Math.PI;
 
 	//scope actions
 	async function load_assets(modules){
-		//exports
 		return new Promise(load_assets_promise)
 
 		//scope actions
@@ -42,38 +43,30 @@ const π = Math.PI;
 
 		async function load_assets_promise(success){
 			await evaluate_asset('prototype/URL.prototype.js')
+			evaluate_asset('prototype/HTMLElement.prototype.js')
 			for(const initial of load) once_module(modules,initial,set_asset)
-			add_asset('is', 'phrase', 'dot','wait')
+			add_asset('is','phrase', 'dot')
 
 			//scope actions
-			function done(){ return load.length === 0 ? (load=null,true):false  }
-
-			function set_project(assets = [modules.directory.locator('module', 'project')], wait = ['modules.constructor.Project',true]){
-				if(Modules.element.hasAttribute('meta')) {
-					assets.push(modules.directory.locator('module', 'meta'))
-					wait.push('modules.meta')
-				}
-				window.modules.import.assets(assets)
-				window.modules.wait(...wait).then(on_project).then(success)
-
-				//scope actions
-				function on_project(Project){ return Project(Modules.base,'project') }
-			}
 			function add_asset(...asset){
 				asset = asset.filter(i=>load.includes(i)===false)
 				load.push(...asset)
-				for(const field of asset) {
-					once_module(modules, field, set_asset)
-					evaluate_asset(`module/${field}.js`)
-				}
+				for(const field of asset) (once_module(modules, field, set_asset), evaluate_asset(`module/${field}.js`))
 			}
+			function done(){ return load.length === 0 ? (load=null,true):false  }
 			function set_asset(event){
-				Object.defineProperty(modules, event.type, {enumerable: false, configurable: false, value: event.detail, writable: false})
-				if(event.type === 'wait') (add_asset( 'element'), evaluate_asset('prototype/Event.prototype.js'))
+				Object.defineProperty(modules, event.type, {configurable: false, value: event.detail, writable: false})
+				if(event.type === 'dot') add_asset('wait')
+				else if(event.type === 'wait') (add_asset('element'), evaluate_asset('prototype/Event.prototype.js'))
 				else if(event.type === 'element') add_asset('http', 'import')
+				else if(event.type === 'import' && Modules.element.hasAttribute('meta')) add_asset('meta')
 				else if(done()) set_project()
 			}
-
+			function set_project(){
+				return Project(Modules.base).then(on_project).then(success)
+				//scope actions
+				function on_project(project){ return (Cookie(modules),Logger(),project.at('design')?modules.import.class('Design'):null,project) }
+			}
 		}
 	}
 
@@ -96,56 +89,6 @@ const π = Math.PI;
 
 	function get_module(modules, notation){ return notation in modules ? modules[notation]:'dot' in modules ? modules.dot.get(modules, notation):null }
 
-	function get_storage(window_modules){
-		return {
-			async clear(){ return await (await Storage()).clear() },
-			async count(){ return await (await Storage()).length() },
-			async delete(...x){ return await (await Storage()).removeItem(...x) },
-			async drop(...x){ return await (await Storage()).dropInstance(...x) },
-			async field(...x){ return await (await Storage()).key(...x) },
-			async fields(){ return await (await Storage()).keys() },
-			async get(field){ return await (await Storage()).getItem(field) },
-			async has(field){ return await (await this.get(field)) !== null },
-			async iterate(...x){ return await (await Storage()).iterate(...x) },
-			async load(...x){ return await Storage(...x) },
-			async set(field, value){ return await (await Storage()).setItem(field, value) },
-			async user(update){
-				const identifier = `user@${window_modules.phrase(`${window_modules.window_locator}`).underscore}`
-				let user = null
-				if(await this.has(identifier)) user = await this.get(identifier)
-				if(typeof update === 'object' && update !== null){
-					if(user) user = Object.assign(user, update)
-					else user = update
-					user.updated = new Date()
-					await this.set(identifier, user)
-				}
-				else if(update === false) return (await this.delete(identifier), null)
-				return user
-			}
-		}
-
-		async function Storage(...configuration){
-			//exports
-			return 'storage-name' in window_modules ? await storage_module():configure_storage(await storage_module())
-
-			//scope actions
-			function configure_storage(storage){
-				if(configuration.length){
-					storage.config(...configuration)
-					window_modules['storage-name'] = storage.config.name
-				}
-				else if(window_modules.base && 'version' in window_modules.base && 'name' in window_modules.base){
-					window_modules['storage-name'] = window_modules.phrase(`${window_modules.base.name} version ${window_modules.base.version}`).underscore
-					storage.config({name: window_modules['storage-name']})
-				}
-				else window_modules['storage-name'] = storage.config.name
-				return storage
-			}
-
-			async function storage_module(){ return 'Storage' in window_modules ? window_modules.Storage:await window_modules.import.package(window_modules, 'Storage') }
-		}
-	}
-
 	function has_module(modules, notation){ return notation in modules ? true:'dot' in modules && modules.dot.has(modules, notation) }
 
 	//Let defines all fields of an object as individual properties in modules
@@ -153,7 +96,6 @@ const π = Math.PI;
 		return function let_module_properties(properties){
 			if(modules.is.object(properties) === false) throw new Error(`modules.let expects a valid object.`)
 			return Object.entries(properties).reduce(reduce_properties, modules)
-
 			//scope actions
 			function reduce_properties(o, property){ return (o.set(...property), o) }
 		}
@@ -167,7 +109,6 @@ const π = Math.PI;
 
 },
 async function get_element(script = null){
-
 	//exports
 	return set_element(get_script())
 
@@ -197,15 +138,188 @@ async function get_element(script = null){
 		return element
 	}
 
+}, function Project(element){
+	const {dot, is} = window.modules
+	return new Promise(async success=>(new class Project{
+		constructor(data){
+			if(dot.has(data, 'project') === false) data.project = {}
+			this.package = data
+			this.element = element
+			this.main = create_main(this, dot.get(data, 'project.main'))
+			this.domain = create_domain(this,data)
+			this.subdomain = create_subdomain(this, dot.get(data, 'project.subdomain'))
+			load_project(window.modules.set('project', this)).then(success).catch(console.error)
 
-}, async function export_log(){
-	const Log = log_value
+			//scope actions
+			async function load_project(project, assets=[]){
+				for(const field in project.subdomain) dot.set(project,field,project.subdomain[field])
+				if(dot.has(project, 'package.project.locations')) await create_locations(dot.get(project,'package.project.locations'))
+				if(dot.has(project, 'main.define')) await define_base_data(dot.get(project,'main.define'))
+				Object.defineProperty(project.package, 'locations', {get(){ return window.modules.project }})
+				if(dot.has(project, 'main.assets')){
+					for(const item of dot.get(project, 'main.assets')){
+						if(typeof item === 'string') assets.push({url: project.main.url(item)})
+						else assets.push(item)
+					}
+				}
+				if(assets.length) window.modules.import.assets(...assets)
+				if(dot.has(project,'main.wait')) await window.modules.wait(...project.main.wait)
+
+				//exports
+				return project
+
+				//scope actions
+				async function create_location(){
+					const folder = get_folder(arguments[1])
+					const origin = get_origin(arguments[1])
+					const location = dot.has(arguments[1], 'field') ? arguments[1].field:arguments[0]
+					dot.set(project, location, Object.assign(URL.join(`${folder}/`, origin), arguments[1]))
+					await create_location_type_values(arguments[1], 'assets', {folder, location, origin})
+					await create_location_type_values(arguments[1], 'items', {folder, location, origin})
+					await create_location_type_values(arguments[1], 'locations', {folder, location, origin})
+				}
+
+				async function create_location_type_values(type, field, {origin,location,folder}){
+					if(dot.has(type, field)) for(const item of Object.entries(dot.get(type, field))){
+						const entry = field==='locations' ?item[0]:item[1]
+						const locator = field==='locations'? join_locations(folder, item[1]):join_locations(folder, entry)
+						const url = await get_url(origin, field === 'items' ? `${locator}/`:locator)
+						if(field === 'assets') assets.push({location, url})
+						else dot.set(project,entry, Object.assign(url,dot.has(project,entry)?dot.get(project, entry):null))
+					}
+				}
+
+				async function create_locations(locations){
+					project[Symbol.for('locations')] = locations
+					return await Promise.all(Object.entries(locations).map(get_location))
+					//scope actions
+					function get_location(fieldset){ return create_location(...fieldset) }
+				}
+
+				async function define_base_data(definitions){
+					for(const field in definitions) dot.set(project, field, await (await window.modules.http(get_base_item(definitions[field]))).data)
+					//scope actions
+					function get_base_item(item){
+						if(item.includes('http')) return new URL(item)
+						else if(item.includes('@')) return (item=item.split('@'), new URL(item[0], dot.get(project, item[1])))
+						return project.main.url(item)
+					}
+				}
+
+				function get_folder(location, locations = []){
+					if(dot.has(location, 'folder')) locations.push(dot.get(location, 'folder'))
+					if(dot.has(location, 'version')) locations.push(dot.get(location, 'version'))
+					return join_locations(...locations)
+				}
+
+				function get_origin(location){ return dot.has(location,'subdomain') ? project.subdomain[location.subdomain]:URL.join() }
+				async function get_url(origin, value){ return (value=is.text(value)&&value.includes('${')?window.modules.tag(value):value,is.dictionary.locator.url(new URL(is.text(value)?value:'/',origin))) }
+				function join_locations(...location){ return location.join('/').split('/').filter(i=>i.trim().length).join('/') }
+			}
+
+			function create_domain(project, data){
+				if(dot.has(data, 'project.domain') === false) data.project.domain = {}
+				if(dot.has(data, 'project.domain.protocol') === false) data.project.domain.protocol = project.element.url.protocol.replace(':','')
+				if(dot.has(data, 'project.domain.name') === false) data.project.domain.name = project.element.url.hostname
+				return data.project.domain
+			}
+
+			function create_main(project,data){
+				if(is.data(data) === false) data = {}
+				data.url = get_main_url
+				return data
+
+				//scope actions
+				function get_main_url(...locator){
+					let location = undefined
+					if(dot.has(project, locator[0])) location = dot.get(project, locator[0])
+					if(location instanceof URL === false) location = undefined
+					else locator.splice(0,1)
+					if(is.nothing(location) && dot.has(project, 'main.location')) location = dot.get(project, 'main.location')
+					if(location instanceof URL === false) location = undefined
+					if(is.nothing(location) === false) locator.push(location)
+					return URL.join(...locator)
+				}
+			}
+
+			function create_subdomain(project, data, subdomain={}){
+				if(is.array(data) === false) data = []
+				for(const name of data) subdomain[name] = new URL(`${project.domain.protocol}://${name}.${project.domain.name}/`)
+				return subdomain
+			}
+		}
+		get at(){ return project_package_attribute(this.package) }
+		get dependencies(){ return this.package.dependencies }
+	}(await load_meta(element))))
+
+	//scope actions
+	async function load_meta(element,base=null){
+		try{ base = await (element.url.extension==='meta'?window.modules.meta.import(element.url):(await window.modules.http(element.url)).json(false, {})) }catch(e){  }
+		return window.modules.is.data(base) ? base:{}
+	}
+
+	function project_package_attribute(){
+		return notation=>dot.get(get_target(arguments[0]),notation)
+		//scope actions
+		function get_target(){
+			return new Proxy(window.modules.is.object(arguments[0])? arguments[0]:{}, {get(o,field){ return get_value(get_object(o,field), field)},has(o, field){return has_value(get_object(o,field), field)}})
+			//scope actions
+			function get_object(o,field){
+				if(has_value(o,field) === false) for(const notation of ['project','package','@','locations', 'global']){
+					if(has_value(o,notation)) try{
+						if(dot.has(o[notation], `@${field}`)) return o[notation]
+						else if(dot.has(o[notation], field)) return o[notation]
+						else if(dot.has(o[`@${notation}`], `@${field}`)) return o[`@${notation}`]
+						else if(dot.has(o[`@${notation}`], field)) return o[`@${notation}`]
+					}catch(error){ }
+				}
+				return o
+			}
+			function get_value(o,field){ return dot.has(o, `@${field}`) ? dot.get(o, `@${field}`):(dot.has(o, field) ? dot.get(o, field):null) }
+			function has_value(o,field){ return dot.has(o, field) || dot.has(o, `@${field}`) }
+		}
+	}
+
+},function Cookie(modules){
+	const package_field = '@cookie'
+	return modules.set('cookie',load({ field: package_field, delete:delete_cookie, set: set_cookie, get: get_cookie }))
+
+	//scope actions
+	function delete_cookie(field){ return this.set(field, '', -1) }
+	function get_cookie(field){
+		const name = `${field}=`;
+		const cookies = window.document.cookie.split(';')
+		for(let index = 0; index < cookies.length; index++){
+			let cookie = cookies[index]
+			while(cookie.charAt(0) === ' ') cookie = cookie.substring(1)
+			if(cookie.indexOf(name) === 0) return modules.meta.data(decodeURIComponent(cookie.substring(name.length, cookie.length)))
+		}
+		return null
+	}
+
+	function load(cookies){
+		const cookie = modules.get(`project.package.${package_field}`)
+		if(cookie) set_cookie(cookie.field, encodeURIComponent(modules.meta.text(cookie.value)))
+		return cookies
+	}
+
+	function set_cookie(field, value, days = 1, path='/'){
+		const date = new Date()
+		date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000))
+		const expires = `expires=${date.toUTCString()}`
+		window.document.cookie = `${field}=${value}; ${expires}; path=${path}`
+		return this
+	}
+},
+function Logger(){
+	const Log = log_bug
 	Log.bug = log_bug
 	Log.error = log_error
 	Log.label = label
+	Log.value = log_value
 
 	//exports
-	return 'log' in window ? Log:window.log = Log
+	return window.modules.set('log','log' in window ? Log:window.log = Log)
 
 	//shared actions
 	function label(text, style = 'rgba(0,123,255,1)'){

@@ -5,5 +5,5 @@
 		window.modules.import.assets(new URL(file,window.modules.project.node_modules))
 		return await window.modules.set('Storage',await window.modules.wait('localforage', true))
 	}
-	return await window.modules.import.package(window.modules, 'Storage')
+	return await window.modules.import.package(window.modules,'Storage')
 })

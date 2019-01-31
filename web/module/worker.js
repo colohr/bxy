@@ -144,12 +144,15 @@
 	}
 
 	async function load_assets(...urls){
-		return await Promise.all(urls.map(get_content)).then(contents=>contents.join('\n\n'))
+		const intact = urls.filter(window.modules.is.TF)[0]
+		urls = urls.filter(window.modules.is.not.TF)
+		const delimiters =  intact ? ['','','']:['\n',';\n','\n\n']
+		return await Promise.all(urls.map(get_content)).then(contents=>contents.join(delimiters[2]))
 
 		//scope actions
 		function get_content(url){
 			if(window.modules.is.text(url) && url.indexOf('http') === 0) url = new URL(url)
-			if(url instanceof URL) return window.modules.http(url).then(({content})=>`\n${content.trim()};\n`)
+			if(url instanceof URL) return window.modules.http(url).then(({content})=>`${delimiters[0]}${content.trim()}${delimiters[1]}`)
 			return url
 		}
 	}
@@ -157,72 +160,105 @@
 	async function load_environment(...assets){ return `\nasync function web_worker_environment(){\n${await load_assets(...assets)}\n}` }
 
 	async function load_modules(worker_type){
+		const module_names = ['modules.is', 'modules.id','modules.dot','URL.prototyped','modules.import','modules.meta', 'Event.prototyped']
 		const assets = await modules_assets(
-			window.modules.directory.base.module('dot'),
-			window.modules.directory.base.module('is'),
-			window.modules.directory.base.module('wait'),
-			window.modules.directory.base.module('http'),
-			window.modules.directory.base.module('meta'),
-			window.modules.directory.base.prototype('Event'))
-
+			window.modules.http.locator.module('is'),
+			window.modules.http.locator.module('phrase'),
+			window.modules.http.locator.module('dot'),
+			window.modules.http.locator.module('wait'),
+			window.modules.http.locator.prototype('URL'),
+			window.modules.http.locator.module('http'),
+			window.modules.http.locator.module('import'),
+			window.modules.http.locator.module('meta'),
+			window.modules.http.locator.prototype('Event'))
 		//scope actions
-		return await load_assets(
-			window.modules.directory.base.prototype('URL'),
-			window.modules.directory.base.worker('modules'),
-			`(async function module_assets(...assets){ 
-				await load();
-				await worker_environment(${JSON.stringify(await worker_environment_data())});
-				${worker_type}
-				
-				//exports
-				this.worker = new WebWorker();
-				await web_worker_environment();
-				if(typeof on_environment === 'function') await on_environment()
-				environment_ready();
-				worker.once('environment', environment_ready);
-				
-				//scope actions
-				function environment_ready(){ worker.send('environment') }
-				async function load(){ return await Promise.all(assets.map(asset=>asset())).catch(console.error); }
-				${worker_environment.toString()}
-		
-			})(${assets})`)
+		return await load_assets(`
+const modules = this.modules = {
+	get ['@modules'](){ return this.get('@package.modules')  },
+	define(notation, {value}){ return this.set(notation, value) },
+	get(notation){
+		if(this.has(notation) === false) return null
+		return 'dot' in this ? this.dot.get(this, notation):this[notation]
+	},
+	has(notation){ return notation in this || ('dot' in this && this.dot.has(this, notation)) },
+	set(notation, value){
+		if('dot' in this) this.dot.set(this, notation, value)
+		else this[notation] = value
+		return value
+	}, 
+	get url(){ return URL.get },
+	get storage(){ return this.import.storage() },
+	tick(action){ return setTimeout(action, 10) },
+	get window_locator(){ return "${window.modules.window_locator}" }
+};
+`,
+`(async function module_assets(){ 
+	await worker_environment(${JSON.stringify(await worker_environment_data())},arguments[0]);
+	${worker_type}
+	//exports
+	this.worker = new WebWorker();
+	await web_worker_environment();
+	if(typeof on_environment === 'function') await on_environment();
+	(environment_ready(), worker.once('environment', environment_ready));
+	//scope actions
+	function environment_ready(){ worker.send('environment') }
+	${worker_environment.toString()}
+})(${assets})`)
 		//scope actions
 		async function modules_assets(...locations){
-			return (await Promise.all(locations.map(get_module))).join(',')
+			return `async function(){
+				for(let item of [${(await Promise.all(locations.map(get_module))).join(',')}]) {
+					const name = item.name;
+					if((item = item()) instanceof Promise) {
+						try{ await item }
+						catch(error){  console.log(name); console.trace(error); }
+						item=null
+					}
+				}
+				return (await modules.wait(...${JSON.stringify(module_names)}),true)
+			}`
 			//scope actions
-			async function get_module(location){
-				return `async function(){ return await ${await load_assets(location)} }`
-			}
+			async function get_module(location){ return `function ${window.modules.id.underscore(location.basename)}(){ return (function resolve(){ return ${await load_assets(location, true)} })() }` }
 		}
 	}
 
 	async function worker_environment(data){
-		modules.directory['@meta'] = data.directory['@meta']
-		modules.set('directory.package', data.directory.package)
-		modules.set('directory.base', set_locators(data.directory.base))
-		modules.set('project', set_locators(data.project))
-		modules.set('project.package', data.package)
-	   	await (await modules.wait('modules.meta', 'Event.prototyped',true)).constructor.load();
-		this.postMessage('modules');
+		modules['@url'] = new URL(data['@url']);
+		modules['@meta'] = typeof(data['@meta']) === 'string' ? new URL(data['@meta']):data['@meta']
+		modules['@package'] = data['@package'];
+		if(await arguments[1]()){
+			modules.set('project', set_locators(data.project))
+			modules.set('project.package', data.package)
+			this.postMessage('modules')
+		}
 		//scope actions
 		function set_locators(data, locators={}){
-			for(const entry of Object.entries(data)) modules.dot.set(locators, entry[0], URL.is(entry[1]) ? new URL(entry[1]):entry[1])
+			for(const entry of Object.entries(data)) {
+				if(URL.is(entry[1])) modules.dot.set(locators, entry[0],new URL(entry[1]))
+				else modules.dot.set(locators, entry[0], entry[1])
+			}
 			return (data=null,locators)
 		}
+		//await (await modules.wait('modules.meta', 'Event.prototyped',true)).constructor.load();
+		//modules.directory['@meta'] = data.directory['@meta']?new URL(data.directory['@meta']):data.directory['@meta']
+		//modules.set('directory.package', data.directory.package)
+		//modules.set('directory.base', set_locators(data.directory.base))
 	}
 
 	function worker_environment_data(){
+
 		return window.modules.import.function('notate').then(on_notate)
 		//scope actions
 		function on_notate(notate){
-			return {directory: get_directory(), package: get_package(), project: get_project()}
+			return {['@meta']:window.modules['@meta'], ['@package']: window.modules['@package'], ['@url']:window.modules['@url'], package: get_package(), project: get_project()}
 
 			//scope actions
 			function get_directory(base={}){
 				for(const field in  window.modules.directory.base){
 					if(typeof window.modules.directory.base[field] === 'function') {
-						base[field] = window.modules.directory.base[field]('index.js')
+						base[field] = window.modules.directory.base[field]('')
+						if(base[field].extension) base[field].pathname= base[field].pathname.replace(base[field].basename, '')
+						if(base[field].pathname.endsWith('//')) base[field].pathname= base[field].pathname.slice(0,base[field].pathname.length-2)
 					}
 					else base[field] = window.modules.directory.base[field]
 				}
@@ -245,7 +281,6 @@
 					return data
 				}
 			}
-
 		}
 	}
 })

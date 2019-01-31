@@ -1,9 +1,11 @@
 {
   "browser": "./web/modules.js",
   "name": "bxy",
-  "version": "0.1.75",
+  "version": "0.1.101",
   "dependencies": {
-    "localforage": "^1.7.3"
+    "localforage": "^1.7.3",
+    "lit-html": "^1.0.0-rc.2",
+    "bxy.font": "^0.0.3"
   },
   "description": "Web Modules for the Browser",
   "directories": {
@@ -17,8 +19,135 @@
   },
   "author": "colohr",
   "license": "ISC",
-  "peerDependencies": {
-    "express": "^4.16.4"
+  "engines": {
+    "node": ">=10.0.0 <11.0.0",
+    "npm": "~6.4.1"
+  },
+  "peerDependencies":   {
+    "luxon": "^1.10.0",
+    "d3": "^5.7.0",
+    "moment": "^2.24.0",
+    "navigo": "^7.1.2",
+    "@turf/turf": "^5.1.6"
+  },
+  "modules": {
+    "Calendar": {
+      "mode": {
+        "define": false
+      },
+      "node_modules": [
+        {
+          "name": "luxon",
+          "external": "https://unpkg.com/luxon/build/cjs-browser/luxon.js",
+          "internal": "node_modules/build/cjs-browser/luxon.js",
+          "wait": ["luxon"],
+          "notation": "luxon",
+          "variable": "luxon"
+        },
+        {
+          "name": "moment",
+          "external": "https://unpkg.com/moment/min/moment.min.js",
+          "internal": "node_modules/min/moment.min.js",
+          "wait": ["moment"],
+          "notation": "moment",
+          "variable": "moment"
+        }
+      ]
+    },
+    "Geo": {
+      "mode": {
+        "define": false,
+        "alias": "@turf/turf"
+      },
+      "node_modules": [
+        {
+          "name": "@turf/turf",
+          "external": "https://unpkg.com/@turf/turf/turf.min.js",
+          "internal": "node_modules/@turf/turf/turf.min.js",
+          "wait": ["turf"],
+          "notation": "turf",
+          "variable": "turf"
+        }
+      ]
+    },
+    "Templet": {
+      "mode": {
+        "define": false,
+        "entry": {
+          "internal": "web/script/templet/index.js",
+          "wait": [  "modules.Templet" ],
+          "notation": "Templet"
+        }
+      },
+      "node_modules": [
+        {
+          "name": "lit-html",
+          "external": "https://unpkg.com/lit-html/lit-html.js",
+          "internal": "node_modules/lit-html/lit-html.js",
+          "es": true,
+          "notation": "Templet.engine"
+        }
+      ]
+    },
+    "Meta": {
+      "mode": {
+        "bundle": true
+      },
+      "scripts": [
+        {
+          "location": "script/meta/assets.js",
+          "bundles": ["esprima","js-yaml"],
+          "wait": ["modules.esprima","modules.yaml"]
+        }
+      ]
+    },
+    "Router": {
+      "mode": {
+        "define": false,
+        "alias": "navigo"
+      },
+      "node_modules": [
+        {
+          "name": "navigo",
+          "external": "https://unpkg.com/navigo/lib/navigo.min.js",
+          "internal": "node_modules/lib/navigo.min.js",
+          "wait": ["Navigo"],
+          "notation": "Navigo",
+          "variable": "Navigo"
+        }
+      ]
+    },
+    "Storage": {
+      "mode": {
+        "define": false,
+        "alias": "localforage"
+      },
+      "node_modules": [
+        {
+          "name": "localforage",
+          "external": "https://unpkg.com/localforage/dist/localforage.nopromises.min.js",
+          "internal": "node_modules/localforage/dist/localforage.nopromises.min.js",
+          "notation": "localforage",
+          "variable": "localforage",
+          "wait": ["localforage"]
+        }
+      ]
+    },
+    "Vector": {
+      "mode": {
+        "define": true
+      },
+      "node_modules": [
+        {
+          "name": "d3",
+          "external": "https://unpkg.com/d3/dist/d3.min.js",
+          "internal": "node_modules/d3/dist/d3.min.js",
+          "notation": "d3",
+          "variable": "d3",
+          "wait": ["d3"]
+        }
+      ]
+    }
   },
   "bugs": {
     "url": "https://github.com/colohr/bxy/issues"

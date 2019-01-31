@@ -1,18 +1,18 @@
-(define=>'prototyped' in HTMLElement ? null:define())(async ()=>{
-	const utility = await window.modules.wait('modules.element', true)
-	HTMLElement.prototyped = 0.04
+(define=>'prototyped' in HTMLElement ? null:define())(()=>{
+	HTMLElement.prototyped = 0.06
 	Object.defineProperties(HTMLElement.prototype, {
 		all:{value:all},
-		gui:{get(){return utility.gui(this)}},
+		bound:{get(){return window.modules.element.bound(this)}},
+		gui:{get(){return window.modules.element.gui(this)}},
 		insert:{value:insert},
-		ui:{get(){return utility.ui(this,'cssPrefix' in this.dataset?this.dataset.cssPrefix:false)}},
-		xml:{get(){return utility.xml(this)}}
+		ui:{get(){return window.modules.element.ui(this,'cssPrefix' in this.dataset?this.dataset.cssPrefix:false)}},
+		xml:{get(){return window.modules.element.xml(this)}}
 	})
 
 	//scope actions
-	function all(...selector_and_filter){ return utility.all(this,...selector_and_filter) }
-
+	function all(...selector_and_filter){ return window.modules.element.all(this,...selector_and_filter) }
 	function insert(content){
+		if(typeof content !== 'string' && content.nodeType !== 1) content = content.nodeValue
 		const insert_type = typeof content === 'string' ? 'insertAdjacentHTML':'insertAdjacentElement'
 		return {
 			after: ()=>insert_after(this),

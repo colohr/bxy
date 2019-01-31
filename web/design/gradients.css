@@ -1,0 +1,49 @@
+@import "colors.css";
+html{
+    /*gradients*/
+    --pacific-cyan-bg: linear-gradient(135deg, var(--pacific-dark) 0%, var(--cyan) 100%);
+
+    --tangerine-sun-bg: linear-gradient(135deg, var(--tangerine-bright) 0%, var(--sun) 100%);
+
+    --apple-mandarine-bg: linear-gradient(135deg, var(--apple) 0%, var(--mandarine) 100%);
+
+    --cherry-mandarine-bg: radial-gradient(ellipse at left, var(--cherry) 0%, var(--cherry) 60%, var(--mandarine) 100%);
+
+    --violet-fuchsia-bg: linear-gradient(135deg, var(--violet) 0%, var(--violet-bright) 49%, var(--fuchsia-light) 100%);
+
+    --fuchsia-bg: radial-gradient(ellipse at right, var(--fuchsia-bright) 0%, var(--fuchsia-black) 100%);
+
+    --indigo-bg: radial-gradient(ellipse at top, var(--indigo) 0%, var(--indigo-bright) 40%, var(--fuchsia-black) 70%, var(--fuchsia-dark) 100%);
+
+    --sea-emerald-bg: linear-gradient(135deg, var(--sea-bright) 0%, var(--turquoise) 49%, var(--emerald) 100%);
+
+    --deep-sea-bg: radial-gradient(ellipse at top, var(--teal-dark) 0%, var(--teal-black) 44%, var(--sea-black) 100%);
+
+    --marine-bg: radial-gradient(ellipse at center, var(--marine-bright) 18%, var(--marine) 61%, var(--marine-dark) 100%);
+
+    --cantaloupe-mandarine-bg: radial-gradient(ellipse at bottom, var(--cantaloupe) 0%, var(--tangerine-bright) 60%, var(--mandarine) 100%);
+
+    --pea-bg: radial-gradient(ellipse at center, var(--pea-light) 13%, var(--pea) 47%, var(--pea-dark) 100%);
+
+    --dew-bg: radial-gradient(ellipse at right, var(--dew-dark) 13%, var(--dew) 47%, var(--dew-bright) 100%);
+
+    --bubblegum-lily-bg: linear-gradient(to top, var(--lily-dark) 0%, var(--bubblegum-bright) 60%, var(--bubblegum) 79%, var(--bubblegum-dark) 100%);
+
+    --tomato-karrot-bg: linear-gradient(215deg, var(--tomato-light) 0%, var(--tomato-bright) 45%, var(--tomato) 80%, var(--karrot) 100%);
+
+    --lima-squash-bg: radial-gradient(ellipse at top, var(--lima) 0%, var(--dew-dim) 54%, var(--squash) 100%);
+
+    --squash-dew-bg: radial-gradient(ellipse at bottom, var(--dew-dim) 0%, var(--lima) 54%, var(--squash) 100%);
+
+    --saphire-pacific-bg: linear-gradient(75deg, var(--pacific-black) 0%, var(--saphire-dark) 40%, var(--saphire) 74%, var(--pacific-bright) 100%);
+
+    --light-melon-bg: radial-gradient(ellipse at top, var(--watermelon-light) 0%, var(--apple-light) 30%, var(--tomato-light) 70%, var(--cantaloupe) 100%);
+
+    --sand-rose-bg: radial-gradient(ellipse at bottom, var(--pink-bright) 0%, var(--rose) 60%, var(--sand) 100%);
+
+    --chocolate-rose-bg: radial-gradient(ellipse at bottom, var(--chocolate-light) 0%, var(--rose-dark) 73%, var(--cream-black) 100%);
+
+    --soft-bg: radial-gradient(ellipse at top, white 0%, var(--sugar) 60%, var(--sugar-dark) 100%);
+}
+
+

@@ -1,0 +1,18 @@
+html {
+    /*
+        Generic Gradient #4F298F #AC2686 #E64770 #FF7F59 #FFBC52 #F9F871
+        Matching Gradient #4F298F #0055B7 #0077CC #0096CD #00B1C1 #00C9B1
+        Shades #4F298F #764CB6 #9F70DF #C896FF #F2BEFF
+        Skip Shade Gradient #4F298F #007BD8 #00BFEB #4CFCE1
+        Matching Palette #4F298F #4B4453 #B0A8B9 #00533F #00886F
+        Natural Palette #4F298F #9C89B3 #FCF8FF #FFFADE
+        Generic Gradient #9DD74D #48C06F #00A485 #008689 #006679 #2F4858
+        Matching Gradient #9DD74D #52C75E #00B472 #009F84 #008990 #007296
+        Spot Palette #9DD74D #839763 #E8F6D0 #005162
+    */
+    --gui-little-magenta-pastel-indigo-gradient: linear-gradient(90deg, var(--gui-little-magenta-pastel) 0%, var(--gui-little-indigo) 100%);
+    --gui-little-green-pastel-blue-light-pastel-gradient: linear-gradient(90deg, var(--gui-little-green-pastel) 0%, var(--gui-little-blue-light-pastel) 100%);
+    --gui-little-purple-bubblegum-gradient: linear-gradient(51deg, var(--gui-little-purple) 30%, var(--gui-little-magenta-purple) 44%, var(--gui-little-magenta) 59%, var(--gui-little-bubblegum) 79%);
+    --gui-little-aqua-blue-light-gradient: linear-gradient(35deg, var(--gui-little-aqua) 0%, var(--gui-little-aqua-blue) 44%, var(--gui-little-blue) 77%, var(--gui-little-blue-light) 100%);
+    --gui-little-pink-pastel-blue-pastel-gradient: linear-gradient(336deg, var(--gui-little-pink-pastel) 0%, var(--gui-little-purple-pastel) 64%, var(--gui-little-blue-pastel) 100%);
+}

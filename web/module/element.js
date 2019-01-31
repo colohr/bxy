@@ -1,15 +1,20 @@
 (async function define_module(...x){ const define = async (module, ...inputs)=>await window.modules.define('element', {value:await module(...inputs)}); return window.modules.has('element')?window.modules.get('element'):await (async ([module],asyncs,...inputs)=>await define(module, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1),(x=x.map(i=>i instanceof Promise?async ()=>await i:i).reduce((l, i)=>((typeof(i)==='function'&&i.constructor.name==='AsyncFunction')?l[0].push(i()):l.push(i),l),[[]]))[0], ...x.slice(1, x.length)); })
 (async function export_module(){
+	await window.modules.wait('HTMLElement.prototyped')
 	const load_attributes = ['async', 'defer', 'href', 'rel', 'src', 'type']
 
 	//exports
 	return {
 		all,
+		get body(){ return this.document.body },
+		bound: get_bound,
 		content,
 		create,
 		defined,
+		get document(){ return window.document },
 		gui,
 		has,
+		get head(){ return this.document.head },
 		mix,
 		query,
 		set: create_set_options,
@@ -19,6 +24,29 @@
 
 	//scope actions
 	function all(element = document.body, selector=null, filter = ()=>true){ return Array.from(selector?content(element).querySelectorAll(selector):content(element).children).filter(filter) }
+
+	function get_bound(element){
+		return {
+			get area(){ return element.getBoundingClientRect() },
+			get center(){ return {x:this.width/2, y:this.height/2} },
+			get design(){ return {get style(){ return window.getComputedStyle(element) }, value: get_value} },
+			get height(){ return element.clientHeight },
+			get size(){ return get_size.call(this,get_boundary()) },
+			get width(){ return element.clientWidth }
+		}
+		//scope actions
+		function get_boundary(){ return element.boundary || element.constructor.boundary || [10,10] }
+		function get_size([minimum_width, minimum_height]){
+			const width = this.width
+			const height = this.height
+			return height > minimum_height && width > minimum_width ? {height, width}:null
+		}
+		function get_value(name){
+			const value = this.style[name]
+			const number = parseFloat(value)
+			return isNaN(value) ? number:value
+		}
+	}
 
 	function content(element){ return element.shadowRoot ? element.shadowRoot:element }
 
@@ -137,6 +165,4 @@
 	}
 
 	function xml(element = document.documentElement){ return new Proxy(element, {deleteProperty(o, i){ return (o.removeAttribute(i), true) }, get(o, i){ return (a=>a === '' ? true:a)(i.includes('aria-') ? o.getAttribute(i) === 'true':o.getAttribute(i)) }, has(o, i){ return o.hasAttribute(i) }, set(o, i, x){ return (a=>(a === null ? o.removeAttribute(i):o.setAttribute(i, a), true))(x === true && !i.includes('aria-') ? '':x === false && !i.includes('aria-') ? null:x) }}) }
-}, async function load_assets(){
-	eval(await window.fetch(new URL('prototype/HTMLElement.prototype.js', window.modules.constructor.url)).then(x=>x.text()))
 })

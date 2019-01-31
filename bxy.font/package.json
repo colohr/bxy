@@ -1,0 +1,23 @@
+{
+  "browser": "./index.js",
+  "name": "bxy.font",
+  "version": "0.0.3",
+  "description": "Web Fonts for bxy.font module",
+  "directories": {
+    "web": "web"
+  },
+  "main": "./index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/colohr/bxy.git"
+  },
+  "author": "colohr",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/colohr/bxy/issues"
+  },
+  "homepage": "https://github.com/colohr/bxy#readme",
+  "peerDependencies": {
+    "fxy": "^0.2.7"
+  }
+}

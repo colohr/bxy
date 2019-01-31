@@ -7,10 +7,8 @@
 
 }, async function RandomExtreme(){
 	const random = await window.modules.import.function('random')
-	const colors = await window.modules.import.json('colors')
-	const entities = await window.modules.import.json('unicode.entities')
-	const values = [random.decimal(-1, 111), 'Text', colors, entities, window.modules.wait, NaN, new Date(), Symbol('extreme'), true, false, null, Infinity, random]
-	const files = [new URL('https://unpkg.com/lit-html/package.json'), new URL('https://unpkg.com/yaml/README.md')]
+	const values = [random.decimal(-1, 111), 'Text',  window.modules.wait, NaN, new Date(), Symbol('extreme'), true, false, null, Infinity, random]
+	const files = [window.modules.get('@url').at('function/function.data_map.js'), window.modules.get('@url').at('data/colors.json')]
 	const symbols = [Symbol('array'),Symbol('object'),Symbol('promise'),Symbol('map'),Symbol('set'),Symbol('file'),Symbol('wait'),Symbol('date'),Symbol('value'), Symbol('value'), Symbol('value'), Symbol('value')]
 	const notations = Object.getOwnPropertyNames(window).map(window.modules.id.dot_notation).map(notation=>notation.toLowerCase())
 	const fields = Object.getOwnPropertyNames(Math).map(window.modules.id.class)

@@ -1,0 +1,335 @@
+html {
+    --zero-light: rgb(47, 47, 47);
+    --zero-bright: rgb(41, 42, 43);
+    --zero-base: rgb(27, 27, 27);
+    --zero-dark: rgb(10, 10, 13);
+
+    --gray-white: #f5f2f0;
+    --gray-light: #dddddd;
+    --gray: lightgray;
+    --gray-dark: #5f646e;
+    --gray-black: #3b3e46;
+
+    --silver: silver;
+
+    --fog-white: whitesmoke;
+    --fog-light: rgba(237, 239, 241, 1);
+
+
+    --platinum-white: ghostwhite;
+    --platinum-light: rgb(236, 238, 241);
+    --platinum-bright: rgb(232, 232, 239);
+    --platinum: rgb(224, 225, 226);
+    --platinum-dark: rgb(158, 166, 175);
+    --platinum-black: rgb(147, 156, 165);
+
+
+    --seal-white: rgb(233, 233, 236);
+    --seal: lightslategray;
+    --seal-dark: slategray;
+
+
+    --night-light: rgb(69, 76, 90);
+    --night-bright: rgb(67, 72, 86);
+    --night-tone: #3c4450;
+    --night: #383e51;
+    --night-black: #292b37;
+
+
+    --chocolate: rgb(89, 73, 81);
+    --chocolate-bright: rgb(108, 90, 100);
+    --chocolate-light: rgb(145, 107, 110);
+    --chocolate-dark: rgb(73, 57, 65);
+
+    --cream-light: rgb(253, 245, 230);
+    --cream-bright: rgb(250, 235, 215);
+    --cream: #f0dcc7;
+    --cream-dark: #cebaa6;
+    --cream-bold: #cab49e;
+    --cream-black: #b7a391;
+
+    --sand-light: rgb(253, 254, 243);
+    --sand: rgba(253, 238, 217, 1);
+
+    --sugar: #fffef2;
+    --sugar-dark: #f3e3dc;
+
+    --rose-light: rgb(250, 240, 230);
+    --rose-bright: mistyrose;
+    --rose: rgb(220, 195, 190);
+    --rose-dark: rosybrown;
+
+    --pink-light: rgb(255, 237, 253);
+    --pink-bright: rgb(238, 221, 232);
+    --pink: rgb(245, 224, 245);
+    --pink-dark: rgb(216, 191, 216);
+
+
+    --marine-white: #435571;
+    --marine-bright: rgba(42, 51, 66, 1);
+    --marine: rgba(39, 47, 61, 1);
+    --marine-dark: rgba(42, 48, 61, 1);
+
+
+
+    --snow: rgb(245, 255, 250);
+    --snow-shade: rgb(236, 245, 253);
+    --snow-dark: rgb(216, 229, 238);
+    --snow-black: rgb(141, 171, 196);
+
+
+    --ice-pastel: #d9e7ff;
+    --ice-shade: #485280;
+    --ice-black: #2f3960;
+
+    --mapbox-blue: #4264fb !important;
+
+
+    --navy-bright: rgb(4, 88, 150);
+    --navy: rgb(4, 64, 120);
+    --navy-dark: rgb(9, 47, 87);
+
+
+    --water-light: #75c8ee;
+    --water-bright: #3f98d6;
+    --water: #367fb4;
+    --water-dark: #2e5c89;
+    --water-black: #214d70;
+
+
+    --azul-light: rgba(45, 170, 253, 1);
+    --azul-bright: rgba(48, 148, 255, 1);
+    --azul: rgb(0, 133, 255);
+    --azul-dark: #1f91e1;
+
+
+    --pacific-pastel: rgba(148, 187, 233, 1);
+    --pacific-bright: #498bff;
+    --pacific: rgba(30, 144, 255, 1);
+    --pacific-dark: rgb(29, 98, 240);
+    --pacific-black: rgb(27, 83, 187);
+
+
+    --sky-light: #3799ff;
+    --sky: #0082ff;
+    --sky-mid: #2275ef;
+    --sky-dark: #0068d0;
+    --sky-black: #0050af;
+
+
+
+    --saphire-pastel: rgba(160, 202, 251, 1);
+    --saphire-dark: rgba(34, 117, 239, 1);
+    --saphire: rgba(0, 123, 255, 1);
+    --saphire-dark: #0056b3;
+
+
+    --ocean-white: #1e6daf;
+    --ocean-black: rgb(23, 31, 105);
+
+
+    --shark-white: rgb(9, 211, 238);
+    --shark-light: rgba(8, 173, 219, 1);
+    --shark-bright: #0077aa;
+
+    --cyan-pastel: rgb(224, 252, 255);
+    --cyan-light: rgb(88, 225, 253);
+    --cyan-bright: rgba(26, 214, 253, 1);
+    --cyan: rgb(26, 198, 237);
+    --cyan-dark: rgb(26, 163, 199);
+
+
+
+    --teal-light: rgba(26, 218, 221, 1);
+    --teal-bright: #2abfce;
+    --teal: #22a6b5;
+    --teal-dark: #2d9097;
+    --teal-black: #205364;
+
+
+    --sea-light: rgb(2, 243, 220);
+    --sea-bright: rgb(26, 193, 194);
+    --sea: #00aba4;
+    --sea-black: #0b4342;
+
+
+    --aqua-light: rgb(123, 249, 226);
+    --aqua-bright: rgb(25, 249, 216);
+    --aqua: rgb(25, 228, 196);
+    --aqua-dark: rgb(24, 176, 146);
+
+
+    --turquoise-light: rgb(80, 227, 194);
+    --turquoise-bright: #2cccaa;
+    --turquoise: rgb(0, 207, 181);
+
+    --spearmint: #1fad86;
+
+    --mint-pastel: rgb(237, 249, 241);
+    --mint-white: #d8fbec;
+    --mint-light: #aafbd3;
+    --mint-bright: #63f8ad;
+    --mint: #3eee9a;
+    --mint-dark: #34b069;
+
+
+    --grass: rgb(49, 221, 117);
+    --grass-dark: rgb(64, 190, 101);
+
+    --emerald-light: #5bcc8b;
+    --emerald-bright: #06e07f;
+    --emerald: rgb(0, 192, 138);
+    --emerald-dark: rgb(0, 174, 120);
+    --emerald-black: rgb(0, 157, 105);
+
+
+    --pea-light: #36d186;
+    --pea: #0eb765;
+    --pea-dark: #3f8954;
+
+
+    --chronic-bright: rgb(5, 228, 95);
+    --chronic: rgb(55, 205, 87);
+    --chronic-dark: #439f4a;
+    --chronic-black: #2a772e;
+
+    --garden: #008240;
+
+
+    --forest-light: rgb(96, 121, 112);
+    --forest-bright: rgb(69, 94, 82);
+    --forest: #2a3d35;
+    --forest-dark: #5a6d67;
+
+
+    --leaf-pastel: #e3ffe7;
+    --leaf-white: #7fcf78;
+    --leaf-light: rgb(97, 209, 87);
+    --leaf: rgb(68, 190, 75);
+    --leaf-dark: rgb(79, 157, 79);
+
+    --limegrass: rgb(129, 201, 38);
+
+    --lima: #94c66e;
+
+    --lime-bright: #99e719;
+    --lime: #7ed321;
+    --lime-dark: #69a717;
+
+
+    --sprint: #c4ff0b;
+
+    --dew-less: #94a865;
+    --dew-bright: rgba(194, 235, 90, 1);
+    --dew-dim: rgba(165, 200, 73, 1);
+    --dew: rgba(169, 211, 0, 1);
+    --dew-dark: rgba(126, 167, 0, 1);
+
+    --eggshell: rgba(255, 252, 211, 1);
+
+    --squash: #ffe272;
+
+    --cantaloupe: rgb(255, 184, 108);
+
+    --peanut-dark: #c37a4c;
+
+    --sun-pastel: rgb(255, 253, 233);
+    --sun: #ece735;
+
+    --marigold: rgba(255, 205, 2, 1);
+
+    --gold-white: #e6bb46;
+    --gold: rgb(250, 202, 0);
+    --gold-dark: #ffb72e;
+    --gold-black: #e4a228;
+
+
+    --dusk-light: #f7af33;
+    --dusk-base: #ff8d38;
+    --dusk-shade: #f78322;
+    --dusk-dark: rgb(243, 131, 32);
+
+    --mandarine-light: #fda600;
+    --mandarine-bright: rgb(255, 149, 0);
+    --mandarine: #ff8400;
+    --mandarine-shade: #ff7300;
+    --mandarine-dark: #ef6e14;
+
+    --tangerine: rgba(255, 94, 58, 1);
+
+    --karrot: #ff5e4c;
+
+    --tomato-light: #df7065;
+    --tomato-bright: rgb(255, 82, 82);
+    --tomato: #de4747;
+    --tomato-dark: #dc3b3b;
+
+    --apple-white: #ef6b73;
+    --apple-light: rgb(254, 98, 103);
+    --apple-bright: #ff4650;
+    --apple: rgb(239, 24, 56);
+
+
+    --cherry: rgb(237, 27, 45);
+
+    --watermelon-light: #ff5074;
+    --watermelon-bright: #f64769;
+    --watermelon: #fb4062;
+    --watermelon-dark: #ff3459;
+
+    --cherry: rgb(255, 42, 104);
+
+    --lily-pastel: rgba(255, 221, 236, 1);
+    --lily-dark: rgb(255, 117, 181);
+
+
+    --bubblegum-light: rgb(255, 77, 197);
+    --bubblegum-bright: #ff28a9;
+    --bubblegum: rgb(255, 24, 190);
+    --bubblegum-dark: rgba(250, 18, 174, 1);
+    --bubblegum-black: rgb(225, 0, 152);
+
+    --fuchsia: rgba(218, 19, 235, 1);
+
+
+    --petal-light: rgb(198, 67, 252);
+    --petal-bright: rgb(182, 24, 248);
+    --petal: rgba(183, 37, 250, 1);
+
+
+    --potion-pastel: #efd5ff;
+    --potion-white: #a75ce9;
+    --potion-light: #a240fb;
+    --potion-bright: rgba(157, 31, 255, 1);
+    --potion: #9b34e7;
+    --potion-black: rgb(121, 20, 215);
+
+
+    --violet-light: rgb(171, 125, 246);
+    --violet-bright: rgb(152, 63, 255);
+    --violet-tone: #8c3df5;
+    --violet: rgb(131, 90, 252);
+    --violet-dark: #6b34dd;
+    --violet-black: #452a9b;
+
+
+    --indigo-light: #6f53ed;
+    --indigo-bright: #5d55ff;
+    --indigo: rgb(85, 65, 236);
+    --indigo-dark: #572add;
+    --indigo-black: rgb(71, 0, 193);
+
+
+    --grape-pastel: rgba(211, 222, 255, 1);
+    --grape-white: rgb(169, 185, 245);
+    --grape-light: rgba(110, 100, 250, 1);
+    --grape: #515ada;
+    --grape-shade: #464ba5;
+    --grape-dark: rgb(54, 55, 162);
+
+
+    --lavender-bright: #8884c5;
+    --lavender: #9181c8;
+    --lavender-dark: #8367ce;
+
+}

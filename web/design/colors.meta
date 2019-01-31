@@ -1,0 +1,45 @@
+
+color-base:
+  - light:
+
+  - bright:
+
+  - base:
+
+  - dark:
+
+
+color-pure:
+  - white:
+
+  - pastel:
+
+  - shock:
+
+  - pure:
+
+  - black:
+
+
+color-tone:
+  - soft:
+
+  - tone:
+
+  - hard:
+
+  - slate:
+
+  - vibrant:
+
+
+color-shade:
+  - pale:
+
+  - shine:
+
+  - mid:
+
+  - shade:
+
+  - dim:

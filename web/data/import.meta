@@ -1,0 +1,167 @@
+Loader:
+  asset: &asset-type
+    type: asset
+    extension: any
+
+  data: &data-type
+    type: http
+    extension:
+      - meta
+      - json
+
+  http: &http-type
+    type: http
+    setting:
+      endpoint: URL
+
+  loader: &loader-type
+    type: http
+
+  module: &module-type
+    type: module
+    extension:
+      - js
+
+  package: &package-type
+    type: package
+    package:
+      field: main
+      folder: package
+    extension:
+      - js
+
+
+Fieldset:
+  accessibility:
+    <<: *asset-type
+    field: &accessibility accessibility
+
+  api:
+    <<: *http-type
+    field: &api api
+
+  application:
+    <<: *asset-type
+    field: &application application
+
+  assets:
+    <<: *loader-type
+    field: &assets assets
+
+  class:
+    <<: *module-type
+    field: &class class
+    id: (){ return id.class(item.name) }
+    entry: (){ return `${item.id()}.${item.extension}` }
+
+  module:
+    <<: *module-type
+    field: &module module
+    id: (){ return id.class(item.name) }
+    entry: (){ return `${item.id()}.${item.extension}` }
+
+  component:
+    <<: *module-type
+    field: &component component
+    id: (){ return [item.id(),'.',item.extension].join('') }
+    entry: (){ return item.package.json.then(x=>x[item.package.field]) }
+
+  data:
+    <<: *data-type
+    field: &data data
+
+  document:
+    <<: *loader-type
+    field: &document document
+    response: document
+
+  function:
+    <<: *module-type
+    field: &function function
+    entry: (){ return `function.${item.name}.${item.extension}` }
+
+  library:
+    <<: *package-type
+    field: &library library
+    package:
+      file: index.js
+    entry: (){ return `${item.name}/${item.package.file}` }
+
+  mixin:
+    <<: *module-type
+    field: &mixin mixin
+    id: (){ return `Mixin.${id.class(item.name)}` }
+    entry: (){ return `${item.name}.${item.extension}` }
+
+  package:
+    <<: *package-type
+    field: &package package
+
+  prototype:
+    <<: *loader-type
+    field: &prototype prototype
+    entry: (){ return `${item.name}.prototype.${item.extension}` }
+    wait: (){ return `${item.name}.prototyped` }
+
+  worker:
+    <<: *loader-type
+    field: &worker worker
+
+
+items:
+  - - *accessibility
+    - a11y
+    - ally
+    - aria
+    - laser
+  - - *api
+  - - *application
+    - app
+    - code
+    - lesson
+    - source
+    - test
+    - design
+    - media
+  - - *assets
+  - - *class
+  - - *component
+  - - *data
+    - json
+    - meta
+    - dictionary
+    - preset
+    - property
+  - - *document
+    - content
+    - template
+    - element
+    - html
+    - css
+  - - templet
+  - - *function
+  - - *module
+    - definition
+    - inspection
+    - interface
+    - type
+    - utility
+  - - *library
+    - lex
+    - kit
+    - script
+    - structure
+    - unit
+    - user
+  - - *mixin
+  - - *package
+    - export
+    - import
+    - node_modules
+    - web_modules
+    - es_modules
+  - - *prototype
+  - - *worker
+    - scope
+    - service_workers
+    - web_workers

@@ -1,45 +1,71 @@
-(function define(...x){const _=this.modules?this.modules:module,__=(m,...a)=>_.define?_.define('meta',{value:m(...a)}):_.exports=m(...a);return _.has&&_.has('meta')?_.get('meta'):(([m],y,...z)=>__(m,...(y.concat(z))))(x.splice(0,1),(x=x.map(i=>Array.isArray(i)?i.map(f=>f()):i).reduce((l,i)=>(Array.isArray(i)?l[0].push(...i):l.push(i),l),[[]]))[0],...x.slice(1, x.length));})
-(function definition(expressions){
-	const symbol = Symbol('meta data')
+(async function define_module(...x){ const define = async (module, ...inputs)=>await window.modules.define('meta', {value:await module(...inputs)}); return window.modules.has('meta')?window.modules.get('meta'):await (async ([module],asyncs,...inputs)=>await define(module, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1),(x=x.map(i=>i instanceof Promise?async ()=>await i:i).reduce((l, i)=>((typeof(i)==='function'&&i.constructor.name==='AsyncFunction')?l[0].push(i()):l.push(i),l),[[]]))[0], ...x.slice(1, x.length)); })
+(async function export_module(){
+	(await window.modules.wait('modules.http.assets',true)).call(this,window.modules.http.locator.script('meta/esprima/index.js'))
+	const symbol = Symbol('meta')
+	const context = {phrase: /\(\)\>/, expression: /\(\)\>/g, replace: '!!js/function >'}
 	class Meta{
-		static get load(){ return load_assets }
+		static get url(){ return new URL('script/meta/index.js', window.modules['@url']) }
 		constructor(){
+			load().then(x=>window.modules.set('yaml', x))
+
+			//window.modules.http.module(window.modules.http.locator.script('meta')).catch(console.trace)
 			this.io = {
 				incoming: data=>this.incoming(data),
 				is(value){ return typeof value === 'string' && value.indexOf('#metadata') === 0 },
 				outgoing: data=>this.outgoing(data)
 			}
+			async function load(){
+				if(window.modules.has('esprima') === false) await window.modules.wait('modules.esprima')
+				return window.modules.http.assets(window.modules.http.locator.script('meta/yaml/index.js')).then(()=>window.modules.wait('jsyaml', true))
+			}
 		}
-		get content(){ return load_content }
+		get content(){ return this.import }
+		content_value(content){ return context.phrase.test(content)?content.replace(context.expression, context.replace):content }
 		data(meta_text){ return this.load(meta_text) }
-		from(meta_text){ return this.load(meta_text) } //Load data from meta text
+		get from(){ return this.data }
 		get lex(){ return window.modules.get('esprima') }
-		async import(locator){ return await import_meta(this, locator) }
+		get import(){ return import_meta }
 		incoming(data){ return data instanceof Object === false ? this.from(data):data }
-		load(content){ return this.yaml.load(content) }
+		load(content){ return this.yaml.load(this.content_value(content)) }
 		outgoing(data){ return data instanceof Object ? `#metadata\n${this.to(data)}`:data }
 		get symbol(){return symbol }
-		text(meta){ return meta instanceof ArrayBuffer ? JSON.stringify(meta):this.yaml.dump(meta) }
-		to(meta_data){ return this.text(meta_data) } //Load meta text from data
+		text(meta){ return this.yaml.dump(meta,{ skipInvalid: true, noRefs: true }) }
+		get to(){ return this.text }
 		get yaml(){ return window.modules.get('yaml') }
 	}
+
 
 	//exports
 	return new Meta()
 
 	//scope actions
-	async function import_meta(meta, locator){
-		await load_assets()
-		try{ return meta.load(await load_content(locator)) }
+	async function import_meta(locator){
+		const {is} = window.modules
+		try{
+			if(!window.modules.yaml || !window.modules.esprima) await window.modules.wait('modules.esprima','modules.yaml')
+			return window.modules.meta.load(await load_content(locator))
+		}
 		catch(error){
 			console.error(error)
 			throw error
 		}
+
+		//scope actions
+		async function load_content(){
+			if(is.text(arguments[0]) && URL.is(arguments[0])) arguments[0] = new URL(arguments[0])
+			if(is.text(arguments[1]) && URL.is(arguments[1])) arguments[1] = new URL(arguments[1])
+			if(is.url(arguments[0]) && is.url(arguments[1]) === false) arguments[1] = arguments[0]
+			if(is.url(arguments[0])) arguments[0] = (await window.modules.http.get(arguments[0])).content
+			return await prepare_content(...arguments)
+		}
 	}
 
-	async function load_assets(){ if(!window.modules.has('yaml')) await window.modules.import(window.modules.directory.locator('script', 'meta').url)  }
-
-	async function load_content(locator){ return await prepare_content((await window.modules.http.get(locator)).content, locator)  }
+	async function prepare_content(content, locator){
+		content = await meta_source(content, locator)
+		if(content.includes('${') && window.modules.has('tag') === false) await window.modules.import.function('tag')
+		//if(context.phrase.test(content)) content = content.replace(context.expression, context.replace)
+		return content
+	}
 
 	async function meta_source(){
 		const import_field = '->:'
@@ -84,11 +110,6 @@
 		}
 	}
 
-	async function prepare_content(content, locator){
-		content = await meta_source(content, locator)
-		if(content.includes('${') && window.modules.has('tag') === false) await window.modules.import.function('tag')
-		for(const item of expressions) if(item.phrase.test(content)) content = content.replace(item.expression,item.replace)
-		return content
-	}
 
-}, [function expressions(){ return [{phrase: /\(\)\>/, expression: /\(\)\>/g, replace: '!!js/function >' }]}])
+
+})

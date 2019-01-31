@@ -26,13 +26,19 @@
 
 	//exports
 	return window.modules.set('data', new Proxy(get_value,{
-		get(o,field){ return field in dot_notation ? dot_notation[field]:null },
-		has(o,field){ return field in dot_notation },
-		ownKeys(){ return Object.getOwnPropertyNames(dot_notation) }
+		get(o,field){ return field in dot_notation ? dot_notation[field]:(Reflect.get(o, field) || null) },
+		has(o,field){ return field in dot_notation || Reflect.has(o,field) },
+		ownKeys(o){ return Array.from(new Set(Reflect.ownKeys(o).concat(Object.getOwnPropertyNames(dot_notation)))).sort() }
 	}))
 
 
 	//scope actions
+	function add_value(data, notation, value){
+		const info = set_value(data, notation, value, true)
+		if(is_value(info.target)) return info.level[info.field].push(value)
+		return info.level[info.field] = [value]
+	}
+
 	function find_value(data, notation){
 		if(!is_object(data)) return null
 		const levels = get_notation(notation)
@@ -60,12 +66,14 @@
 
 	function has_value(data, notation){ return is_value(find_value(data, notation)) }
 
-	function is_action(x){ return typeof x === 'function' && !('prototype' in x) }
+	function is_action(x){
+		if(typeof x !== 'function') return false
+		try{ return 'prototype' in x === false }
+		catch(error){ return x.prototype instanceof Object === false }
+	}
 
 	function is_notation(x){ return typeof x === 'string' || typeof x === 'symbol'  || typeof x === 'number' }
-
 	function is_object(x){ return typeof x === 'object' && x !== null }
-
 	function is_value(x){ return typeof x !== 'undefined' && x !== null }
 
 	function join_value(data, notation, value){
@@ -76,12 +84,6 @@
 			return info.level[info.field] = Object.assign(info.target, value)
 		}
 		return info.level[info.field] = value
-	}
-
-	function add_value(data, notation, value){
-		const info = set_value(data, notation, value, true)
-		if(is_value(info.target)) return info.level[info.field].push(value)
-		return info.level[info.field] = [value]
 	}
 
 	function set_value(data, notation, value, dont_set){
@@ -104,7 +106,6 @@
 		}
 		return level[levels[levels.length - 1]] = value
 	}
-
 
 	function unset_value(data, notation){
 		const levels = get_notation(notation)

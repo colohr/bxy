@@ -1,17 +1,21 @@
 (async function define_module(...x){ const define = async (module, ...inputs)=>await window.modules.define('lit-html', {value:await module(...inputs)}); return window.modules.has('lit-html')?window.modules.get('lit-html'):await (async ([module],asyncs,...inputs)=>await define(module, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1),(x=x.map(i=>i instanceof Promise?async ()=>await i:i).reduce((l, i)=>((typeof(i)==='function'&&i.constructor.name==='AsyncFunction')?l[0].push(i()):l.push(i),l),[[]]))[0], ...x.slice(1, x.length)); })
-(async function load_module(version='0.14.0', folder=null, location=null ,locator = (version = '', location='')=>new URL(`https://unpkg.com/lit-html${version ? `@`:''}${version}${location}`)){
+(async function load_module(){
+	//version='0.14.0', folder=null, location=null ,locator = (version = '', location='')=>new URL(`https://unpkg.com/lit-html${version ? `@`:''}${version}${location}`)
 	const {id,is,dot} = window.modules
 	const directives = {}
+	return class Templet{
 
-	if(window.modules.has('project.dependencies.lit-html') && window.modules.get('project.dependencies.lit-html') !== version){
-		version = window.modules.get('project.dependencies.lit-html')
-		folder = locator(version,'/')
-		location = locator(version)
 	}
-	else{
-		folder = new URL('module/', window.modules.directory.locator('script', 'lit-html').url)
-		location = new URL('lit-html.js', folder)
-	}
+
+	//if(window.modules.has('project.dependencies.lit-html') && window.modules.get('project.dependencies.lit-html') !== version){
+	//	version = window.modules.get('project.dependencies.lit-html')
+	//	folder = locator(version,'/')
+	//	location = locator(version)
+	//}
+	//else{
+	//	folder = new URL('module/', window.modules.directory.locator('script', 'lit-html').url)
+	//	location = new URL('lit-html.js', folder)
+	//}
 
 	import_asset.directive = import_directive
 

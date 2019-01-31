@@ -3,21 +3,16 @@
 	const fields = ['capitalize', 'class', 'clean', 'count', 'dash', 'dot_notation', 'empty', 'lower', 'list', 'medial', 'original', 'path', 'phrase', 'proper', 'separate', 'source', 'slash','space' , 'symbol', 'readable', 'text', 'underscore', '_', 'upper', 'words']
 
 	//exports
-	window.modules.set('id', new Proxy(text_phrase,{get, has, ownKeys(){ return fields }}))
+	window.modules.set('id', new Proxy(text_phrase,{get, has, ownKeys(o){ return Array.from(new Set(Reflect.ownKeys(o).concat(fields))).sort() } }))
 	return text_phrase
 
 	//scope actions
-	function get(o,field){
-		if(fields.includes(field)) return (...x)=>text_phrase(...x)[field]
-		else if(field in o) return typeof o[field] === 'function' ? o[field].bind(o):o[field]
-		return null
-	}
+	function get(o,field){ return fields.includes(field) ? (...x)=>text_phrase(...x)[field]:(Reflect.get(o, field) || null) }
 
-	function has(o, field){ return fields.includes(field) || field in o }
+	function has(o, field){ return fields.includes(field) || Reflect.has(o, field) }
 
 	function text_phrase(value, separator = '_'){
 		separator = typeof separator !== 'string' ? '_':separator
-
 		const original = text(value)
 		value = phrase(original)
 
