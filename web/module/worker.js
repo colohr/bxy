@@ -97,6 +97,7 @@
 	function create_worker(...content){ return new WebWorker(window.URL.createObjectURL(new Blob(content, {type: 'text/javascript'}))) }
 
 	async function embed_worker(...worker){
+		if(window.modules.has('meta') === false) await window.modules.import('meta')
 		worker = create_worker(...(await load_worker_content(WebWorker.toString(),...worker)))
 		return new Promise(geo_worker_promise)
 		//scope actions
@@ -224,7 +225,7 @@ const modules = this.modules = {
 
 	async function worker_environment(data){
 		modules['@url'] = new URL(data['@url']);
-		modules['@meta'] = typeof(data['@meta']) === 'string' ? new URL(data['@meta']):data['@meta']
+		modules['@meta'] = data['@meta'] && typeof(data['@meta']) === 'string' ? new URL(data['@meta']):data['@meta']
 		modules['@package'] = data['@package'];
 		if(await arguments[1]()){
 			modules.set('project', set_locators(data.project))

@@ -11,7 +11,6 @@
 			const id = is.text(element.dataset.restoreId) ? element.dataset.restoreId:element.dataset.restoreId = uid()
 			return backup_element_text(element, locator(this.element, id), get_text(element, text))
 		}
-
 		async find(id){ return await get_storage_data(locator(id, this.element)) }
 		async locators(){ return await get_storage_locators(this.element) }
 		async restore(element){

@@ -11,10 +11,10 @@
 			inputs[inputs.indexOf(component)] = window.modules.http.locator.component(component)
 		}
 		return {
-			locator: inputs.filter(window.modules.is.url),
+			locator: inputs.filter(window.modules.is.url)[0] || null,
 			name: inputs.filter(window.modules.is.text)[0] || null,
 			definition: inputs.filter(window.modules.is.data)[0] || {},
-			get tag(){ return get_tag(this.name,this.locator) }
+			get tag(){ return get_tag(this.locator) }
 		}
 	}
 
@@ -29,10 +29,12 @@
 		return inputs
 	}
 
-	function get_tag(name, locator){ return name && name.includes('-') ? name:window.modules.id.dash(locator.file.replace(`.${locator.extension}`, '')) }
+	function get_tag(locator){
+		return window.modules.id.dash(locator.file.replace(`.${locator.extension}`, ''))
+	}
 
 	async function import_component(){
-		const {locator,tag, definition} = get_inputs(...arguments)
+		const {locator, tag, definition} = get_inputs(...arguments)
 		if(window.modules.is.defined(tag)) return window.modules.element.create(tag, definition)
 		await window.modules.http.assets(locator)
 		return window.modules.element.create(tag, definition)

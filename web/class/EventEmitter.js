@@ -105,7 +105,7 @@
 			if(this.adapter) this.adapter.addEventListener(type,listener,false)
 			return (listener.dispatches = true,this.on(type, listener))
 		}
-		count(type){ return this.listenerCount(type) }
+
 		dispatch(...event){
 			if(event[0] instanceof InterfaceEvent === false) event = new InterfaceEvent(event[0], {[field]: event[1]})
 			else event = event[0]

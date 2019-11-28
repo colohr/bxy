@@ -3,11 +3,12 @@
 	(await window.modules.wait('modules.http.assets',true)).call(this,window.modules.http.locator.script('meta/esprima/index.js'))
 	const symbol = Symbol('meta')
 	const context = {phrase: /\(\)\>/, expression: /\(\)\>/g, replace: '!!js/function >'}
+	const functions = {start: `!<tag:yaml.org,2002:js/function`, end:'(', breaks:'> |-\n',inline:`> '` }
+
 	class Meta{
 		static get url(){ return new URL('script/meta/index.js', window.modules['@url']) }
 		constructor(){
 			load().then(x=>window.modules.set('yaml', x))
-
 			//window.modules.http.module(window.modules.http.locator.script('meta')).catch(console.trace)
 			this.io = {
 				incoming: data=>this.incoming(data),
@@ -28,17 +29,42 @@
 		incoming(data){ return data instanceof Object === false ? this.from(data):data }
 		load(content){ return this.yaml.load(this.content_value(content)) }
 		outgoing(data){ return data instanceof Object ? `#metadata\n${this.to(data)}`:data }
+		get prepare(){ return prepare_content }
+		get source(){ return meta_source }
 		get symbol(){return symbol }
-		text(meta){ return this.yaml.dump(meta,{ skipInvalid: true, noRefs: true }) }
+		text(meta){ return fix_functions(this.yaml.dump(meta,{ skipInvalid: true, noRefs: true })) }
 		get to(){ return this.text }
 		get yaml(){ return window.modules.get('yaml') }
 	}
-
 
 	//exports
 	return new Meta()
 
 	//scope actions
+	function fix_function(content,fixes){
+		const next = get_fragment(content)
+		return next ? (fixes.add(next),fix_function(content.replace(next.start, next.index),fixes)):fixes
+		//scope actions
+		function get_fragment(text){
+			if(text.indexOf(functions.start) === -1) return null
+			const fragment = text.substring(text.lastIndexOf(functions.start) + functions.count, text.lastIndexOf(functions.end))
+			const prefix = fragment.startsWith(functions.breaks) ? functions.breaks:functions.inline
+			const start = `${functions.start}${fragment}${functions.end}`
+			const fixed = fragment.replace(prefix.trim(), '')
+			const from_fragment = `${fixed}${functions.end}`
+			const to_fragment = `${fixed.replace(fixed.trim(),'')}function ${fixed.trim()}${functions.end}`
+			return {start, from: from_fragment, prefix, index: `<<${fixes.size}>>`, to: to_fragment, valid: fragment.replace(prefix, '').trim().startsWith('function')}
+		}
+	}
+
+	function fix_functions(text){
+		if(text.includes(functions.start) === false) return text
+		functions.count = functions.count || functions.start.length
+		let fixes = fix_function(text, new Set())
+		for(const fix of fixes) if(fix.valid === false) text = text.replace(fix.from,fix.to)
+		return (fixes=null,text)
+	}
+
 	async function import_meta(locator){
 		const {is} = window.modules
 		try{
@@ -51,25 +77,24 @@
 		}
 
 		//scope actions
-		async function load_content(){
-			if(is.text(arguments[0]) && URL.is(arguments[0])) arguments[0] = new URL(arguments[0])
-			if(is.text(arguments[1]) && URL.is(arguments[1])) arguments[1] = new URL(arguments[1])
-			if(is.url(arguments[0]) && is.url(arguments[1]) === false) arguments[1] = arguments[0]
-			if(is.url(arguments[0])) arguments[0] = (await window.modules.http.get(arguments[0])).content
-			return await prepare_content(...arguments)
+		async function load_content(url, base_url, content=null){
+			if(URL.is(url)) url = new URL(url)
+			if(URL.is(base_url)) base_url = new URL(base_url)
+			if(is.url(url) && is.not.url(base_url)) base_url = url
+			if(is.url(url)) content = (await window.modules.http.get(url)).content
+			return await prepare_content(content, url, base_url)
 		}
 	}
 
 	async function prepare_content(content, locator){
 		content = await meta_source(content, locator)
 		if(content.includes('${') && window.modules.has('tag') === false) await window.modules.import.function('tag')
-		//if(context.phrase.test(content)) content = content.replace(context.expression, context.replace)
 		return content
 	}
 
 	async function meta_source(){
 		const import_field = '->:'
-		const url = new URL(window.modules['@meta'] || arguments[1] || URL.base())
+		const url = window.modules.is.url(arguments[1]) ? arguments[1]:new URL(window.modules['@meta'] || arguments[1] || URL.base())
 		return read({ field: `@base`,name: 'base',notation: '',url: new URL(`package.meta`, url) }, arguments[0])
 		//scope actions
 		async function read(base, content){

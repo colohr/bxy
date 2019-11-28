@@ -1,6 +1,6 @@
 (async function define_module(...x){ const define = async (module, ...inputs)=>await window.modules.define('function.import.internal', {value:await module(...inputs)}); return window.modules.has('function.import.internal')?window.modules.get('function.import.internal'):await (async ([module],asyncs,...inputs)=>await define(module, ...(await Promise.all(asyncs)).concat(inputs)))(x.splice(0, 1),(x=x.map(i=>i instanceof Promise?async ()=>await i:i).reduce((l, i)=>((typeof(i)==='function'&&i.constructor.name==='AsyncFunction')?l[0].push(i()):l.push(i),l),[[]]))[0], ...x.slice(1, x.length)); })
 (async function export_module(AnnotatedData){
-	const internal_modules = Symbol('AnnotatedData for internal modules with package-lock.json')
+	const internal_modules = Symbol.for('AnnotatedData for internal modules with package-lock.json')
 	//export
 	return import_internal
 

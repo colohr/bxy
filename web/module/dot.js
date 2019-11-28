@@ -73,7 +73,7 @@
 	}
 
 	function is_notation(x){ return typeof x === 'string' || typeof x === 'symbol'  || typeof x === 'number' }
-	function is_object(x){ return typeof x === 'object' && x !== null }
+	function is_object(x){ return (typeof x === 'object' && x !== null) || typeof x === 'function' }
 	function is_value(x){ return typeof x !== 'undefined' && x !== null }
 
 	function join_value(data, notation, value){

@@ -11,7 +11,7 @@
 		return (html_element.shadowRoot.appendChild(this.import()),html_element)
 	}
 
-	async function create(template){
+	async function create(template, ...setting){
 		const identifier = template.identifier
 		if(template.document) switch(template.extension){
 			case 'css': return create_style()
@@ -28,7 +28,7 @@
 		}
 
 		function create_svg(){
-			const svg = template.document.body.querySelector('svg')
+			const svg = template.document.querySelector('svg')
 			if(svg) {
 				svg.remove()
 				svg.setAttribute('id', identifier)
@@ -43,7 +43,7 @@
 		function create_template(){
 			const all_styles = Array.from(template.document.querySelectorAll('style')).map(i=>i.outerHTML).join('\n')
 			const all_content = template.document.body.innerHTML
-			return get_template(identifier, `${all_styles}\n${all_content}`)
+			return get_template(identifier, `${setting.filter(window.modules.is.text).join('')}${all_styles}\n${all_content}`)
 		}
 	}
 
@@ -60,22 +60,23 @@
 
 	function get_type(locator){ return locator.extension === 'css' ? 'style':'template' }
 
-	function import_document(locator){
+	function import_document(locator, ...setting){
 		if(window.modules.is.url.text(locator)) locator =  new URL(locator)
 		locator = window.modules.is.url(locator) ? locator:URL.get(locator)
-		return load_document(locator)
+		return load_document(locator, ...setting)
 	}
 
 	function import_content(){ return document.importNode(this.content, true) }
 
-	async function load_document(locator){
+	async function load_document(locator, ...setting){
 		const extension = locator.extension
 		const identifier = extension ? id.dash(locator.basename):id.dash(`${locator.file.replace(`.${extension}`, '')}`)
 		const type = get_type(locator)
 		const content = get_content(identifier,type)
-		if(content === null) return http(locator).then(on_document).then(create)
+		if(content === null) return http(locator).then(on_document).then(on_create)
 		return content
 		//scope actions
+		function on_create(){ return create(arguments[0], ...setting) }
 		function on_document(response){ return {identifier,extension, type, document:type==='style' ? response.content:response.document,locator}  }
 	}
 

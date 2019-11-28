@@ -30,34 +30,55 @@
 		return this.get(Random.item(keys))
 	}
 
-	async function load(...stylesheet){ return (await load_color_names.call(this), new (this)(await load_css(...stylesheet))) }
+	async function load(...stylesheet){ return new (this)(await load_css(...stylesheet)) }
 
 	async function load_css(...stylesheets){
-		window.modules.import.assets(URL.join('design/colors.css', window.modules.constructor.url))
 		const Document = await window.modules.import.class('Document')
 		const CSS = await window.modules.import.class('Document.CSS')
-		const base = new CSS(await Document(URL.join('design/colors.css', window.modules.constructor.url)),'wait')
+
+		let colors_document = await Document(URL.join('design/colors.css', window.modules.constructor.url))
+		colors_document.head.gui('style:first-of-type').setAttribute('style-source',URL.join('design/colors.css', window.modules.constructor.url).href)
+		const base = new CSS(colors_document,'wait')
 		const sheets = await load_css_documents()
 		for(const sheet of sheets) for(const [x,y] of sheet) base.set(x,y)
 
 		//exports
+		colors_document = (colors_document.head.all('style').reduce(reduce_color_styles,window.document.head.gui('title') || window.document.head.lastElementChild),null)
 		return base.regulate(true)
 
 		//scope actions
 		async function load_css_document(content){
 			if(content instanceof Map) return content
 			else if(Array.isArray(content) === false) content = [content]
-			return new CSS(await Document(...content),'wait')
+			const source = content[0] instanceof URL ? content[0].href:null
+			content = await Document(...content)
+			return new CSS((content.head.all('style').forEach(add_styles),content),'wait')
+			//scope actions
+			function add_styles(style){
+				style = colors_document.importNode(style, true)
+				style.innerHTML = style.innerHTML.split(';').filter(filter_import).join(';')
+				if(source) style.setAttribute('style-source', source)
+				style.setAttribute('name', `colors-${colors_document.head.all('style').length}`)
+				colors_document.head.gui('style:last-of-type').insert(style).after()
+				//scope actions
+				function filter_import(line){ return /^@import/.test(line) === false }
+			}
+		}
+		function reduce_color_styles(target, style){
+			style = window.document.importNode(style,true)
+			const has_style = style.hasAttribute('style-source') && window.document.head.gui(`style[style-source="${style.getAttribute('style-source')}"]`) === null
+			return (has_style ? (target ? target.insert(style).after():window.document.head.appendChild(style)):null,style)
 		}
 
 		function load_css_documents(){ return Promise.all(stylesheets.map(load_css_document)) }
 	}
 
-	async function load_color_names(){return 'color_names' in this?this.color_names:this.color_names=await window.modules.import.json('colors')}
-
 	function preload(Design){
-		get_entries(window.modules.project.at('design.colors'), 'colors')
-		get_entries(window.modules.project.at('design.styles'), 'styles')
+		window.modules.wait('modules.project.at').then(()=>{
+			get_entries(window.modules.project.at('design.colors'), 'colors')
+			get_entries(window.modules.project.at('design.styles'), 'styles')
+		})
+
 		return Design
 		//scope actions
 		function get_entries(entries,type){
@@ -107,6 +128,7 @@
 		document(...locations){ return stylesheet_document(this.add(locations)) }
 		element(...locations){ return stylesheet_element(this.add(locations)) }
 		import(...locations){ return design_assets(this.add(locations)) }
+		get link(){ return this.map(link_import).join('\n') }
 		url(...locations){ return this.add(locations) }
 		toString(){ return this.map(design_import).join('\n') }
 	}
@@ -128,6 +150,7 @@
 		//scope actions
 		function get_source_information(source, url = null){ return {url: url = new URL(source),folder: new URL(source.replace(url.file, '')),get design(){ return new URL('design', this.folder) }} }
 	}
+	function link_import(stylesheet){ return `<link href="${stylesheet}" rel="stylesheet">` }
 	async function stylesheet_content(design_stylesheets){
 		return (await Promise.all(design_stylesheets.map(map_stylesheet))).join('\n')
 		//scope actions
@@ -137,12 +160,14 @@
 	async function stylesheet_element(design_stylesheets){ return window.modules.element.create('style', {html: await stylesheet_content(design_stylesheets)}) }
 
 },async function Color(){
+	const color_names = {"aliceblue": "#f0f8ff", "antiquewhite": "#faebd7", "aqua": "#00ffff", "aquamarine": "#7fffd4", "azure": "#f0ffff", "beige": "#f5f5dc", "bisque": "#ffe4c4", "black": "#000000", "blanchedalmond": "#ffebcd", "blue": "#0000ff", "blueviolet": "#8a2be2", "brown": "#a52a2a", "burlywood": "#deb887", "cadetblue": "#5f9ea0", "chartreuse": "#7fff00", "chocolate": "#d2691e", "coral": "#ff7f50", "cornflowerblue": "#6495ed", "cornsilk": "#fff8dc", "crimson": "#dc143c", "cyan": "#00ffff", "darkblue": "#00008b", "darkcyan": "#008b8b", "darkgoldenrod": "#b8860b", "darkgray": "#a9a9a9", "darkgreen": "#006400", "darkkhaki": "#bdb76b", "darkmagenta": "#8b008b", "darkolivegreen": "#556b2f", "darkorange": "#ff8c00", "darkorchid": "#9932cc", "darkred": "#8b0000", "darksalmon": "#e9967a", "darkseagreen": "#8fbc8f", "darkslateblue": "#483d8b", "darkslategray": "#2f4f4f", "darkturquoise": "#00ced1", "darkviolet": "#9400d3", "deeppink": "#ff1493", "deepskyblue": "#00bfff", "dimgray": "#696969", "dodgerblue": "#1e90ff", "firebrick": "#b22222", "floralwhite": "#fffaf0", "forestgreen": "#228b22", "fuchsia": "#ff00ff", "gainsboro": "#dcdcdc", "ghostwhite": "#f8f8ff", "gold": "#ffd700", "goldenrod": "#daa520", "gray": "#808080", "green": "#008000", "greenyellow": "#adff2f", "honeydew": "#f0fff0", "hotpink": "#ff69b4", "indianred ": "#cd5c5c", "indigo": "#4b0082", "ivory": "#fffff0", "khaki": "#f0e68c", "lavender": "#e6e6fa", "lavenderblush": "#fff0f5", "lawngreen": "#7cfc00", "lemonchiffon": "#fffacd", "lightblue": "#add8e6", "lightcoral": "#f08080", "lightcyan": "#e0ffff", "lightgoldenrodyellow": "#fafad2", "lightgray": "#d3d3d3", "lightgreen": "#90ee90", "lightpink": "#ffb6c1", "lightsalmon": "#ffa07a", "lightseagreen": "#20b2aa", "lightskyblue": "#87cefa", "lightslategray": "#778899", "lightsteelblue": "#b0c4de", "lightyellow": "#ffffe0", "lime": "#00ff00", "limegreen": "#32cd32", "linen": "#faf0e6", "magenta": "#ff00ff", "maroon": "#800000", "mediumaquamarine": "#66cdaa", "mediumblue": "#0000cd", "mediumorchid": "#ba55d3", "mediumpurple": "#9370d8", "mediumseagreen": "#3cb371", "mediumslateblue": "#7b68ee", "mediumspringgreen": "#00fa9a", "mediumturquoise": "#48d1cc", "mediumvioletred": "#c71585", "midnightblue": "#191970", "mintcream": "#f5fffa", "mistyrose": "#ffe4e1", "moccasin": "#ffe4b5", "navajowhite": "#ffdead", "navy": "#000080", "oldlace": "#fdf5e6", "olive": "#808000", "olivedrab": "#6b8e23", "orange": "#ffa500", "orangered": "#ff4500", "orchid": "#da70d6", "palegoldenrod": "#eee8aa", "palegreen": "#98fb98", "paleturquoise": "#afeeee", "palevioletred": "#d87093", "papayawhip": "#ffefd5", "peachpuff": "#ffdab9", "peru": "#cd853f", "pink": "#ffc0cb", "plum": "#dda0dd", "powderblue": "#b0e0e6", "purple": "#800080", "rebeccapurple": "#663399", "red": "#ff0000", "rosybrown": "#bc8f8f", "royalblue": "#4169e1", "saddlebrown": "#8b4513", "salmon": "#fa8072", "sandybrown": "#f4a460", "seagreen": "#2e8b57", "seashell": "#fff5ee", "sienna": "#a0522d", "silver": "#c0c0c0", "skyblue": "#87ceeb", "slateblue": "#6a5acd", "slategray": "#708090", "snow": "#fffafa", "springgreen": "#00ff7f", "steelblue": "#4682b4", "tan": "#d2b48c", "teal": "#008080", "thistle": "#d8bfd8", "tomato": "#ff6347", "turquoise": "#40e0d0", "violet": "#ee82ee", "wheat": "#f5deb3", "white": "#ffffff", "whitesmoke": "#f5f5f5", "yellow": "#ffff00", "yellowgreen": "#9acd32"}
 	const is = window.modules.is
 	const alpha_opacity_transparency = Symbol('color alpha, opacity or transparency')
 	const shorthand_hex_reg = /^#?([a-f\d])([a-f\d])([a-f\d])$/i
 	const hex_to_rgb_reg = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i
 
 	class Color{
+		static get names(){ return color_names }
 		constructor(value, colors){
 			if(is.map(colors) && colors.has(value)) value = colors.get(value)
 			this.identity = value
@@ -167,7 +192,6 @@
 
 	//scope actions
 	function get_color(value){
-		const color_names = window.modules.get('Design.color_names')
 		if(is.array(value)) return value
 		if(is.text(value)){
 			value = value.trim()

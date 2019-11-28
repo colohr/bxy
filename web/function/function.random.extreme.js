@@ -8,17 +8,24 @@
 }, async function RandomExtreme(){
 	const random = await window.modules.import.function('random')
 	const values = [random.decimal(-1, 111), 'Text',  window.modules.wait, NaN, new Date(), Symbol('extreme'), true, false, null, Infinity, random]
-	const files = [window.modules.get('@url').at('function/function.data_map.js'), window.modules.get('@url').at('data/colors.json')]
-	const symbols = [Symbol('array'),Symbol('object'),Symbol('promise'),Symbol('map'),Symbol('set'),Symbol('file'),Symbol('wait'),Symbol('date'),Symbol('value'), Symbol('value'), Symbol('value'), Symbol('value')]
-	const notations = Object.getOwnPropertyNames(window).map(window.modules.id.dot_notation).map(notation=>notation.toLowerCase())
+	const files = [ 'https://unpkg.com/bxy/package.json', 'https://unpkg.com/fxy/package.json', 'https://unpkg.com/bxy/web/data/colors.json']
+	const default_symbols = [Symbol('array'),Symbol('object'),Symbol('promise'),Symbol('map'),Symbol('set'),Symbol('file'),Symbol('date'),Symbol('value'), Symbol('value'), Symbol('value'), Symbol('value')]
+	const sync_symbols = [Symbol('array'), Symbol('object'),   Symbol('file'), Symbol('wait'), Symbol('date'), Symbol('value'), Symbol('value'), Symbol('value'), Symbol('value')]
+	const notations = Object.getOwnPropertyNames(window).filter(x=>x!=='location').map(window.modules.id.dot_notation).map(notation=>notation.toLowerCase())
 	const fields = Object.getOwnPropertyNames(Math).map(window.modules.id.class)
-	let limit = 1400
+	const default_limit = 250
+	let limit = default_limit
 
 	//exports
-	return function(custom_limit=400){
-		limit = custom_limit
-		const gets = [get_random_array, get_random_object, get_random_promise, get_random_map, get_random_set, get_random_file, get_random_notation, get_random_date]
+	return function(){
+		limit = arguments.length ? arguments[0]:default_limit
+		const promises = arguments[1] !== true
+		const symbols = promises ? default_symbols:sync_symbols
+		const gets = promises ? [get_random_array, get_random_object, get_random_promise, get_random_map, get_random_set, get_random_file,  get_random_date]:[get_array, get_object,  get_random_file, get_random_notation, get_random_date]
+		const last = promises ? 6:4
+
 		let count = 0
+		let file_count = 0
 		return get_object()
 
 		//scope actions
@@ -26,7 +33,7 @@
 			if(count < limit){
 				const symbol = random.item(symbols)
 				const index = symbols.indexOf(symbol)
-				if(index <= 6) return gets[index]()
+				if(index <= last) return gets[index]()
 			}
 			return random.item(values)
 		}
@@ -52,6 +59,7 @@
 			const notation = random.item(notations)
 			const dots = notation.split('.')
 			const set = []
+			if(promises === false) return notation
 			if(window.modules.dot.has(window, notation) === false) window.setTimeout(add_notation, random(100, 1000));
 			return window.modules.wait(notation)
 
@@ -67,18 +75,21 @@
 			function next(){ if(dots.length) window.setTimeout(add_notation, random(10, 500)); }
 		}
 
-		function get_random_object(){ return new Promise((success)=>window.setTimeout(()=>success(get_object()), random(10, 500))) }
+		function get_random_object(){ return promises ? new Promise((success)=>window.setTimeout(()=>success(get_object()), random(10, 500))):get_object() }
 
-		function get_random_array(){ return new Promise((success)=>window.setTimeout(()=>success(get_array()), random(10, 500))) }
+		function get_random_array(){ return promises ? new Promise((success)=>window.setTimeout(()=>success(get_array()), random(10, 500))):get_array() }
 
 		function get_random_set(){ return get_random_array().then(x=>new Set(x)) }
 
 		function get_random_map(){ return get_random_object().then(x=>new Map(Object.entries(x))) }
 
-		function get_random_date(date = new Date()){ return Promise.resolve(date.setDate(random.decimal(-500, 500))) }
+		function get_random_date(date = new Date()){ return promises ? Promise.resolve((date.setDate(random.decimal(-500, 500)),date)):(date.setDate(random.decimal(-500, 500)),date) }
 
 		function get_random_file(){
+
 			const file = random.item(files)
+			if(file_count >= files.length || promises===false) return promises ? Promise.resolve({file,file_count}):{file_count, file}
+			file_count++;
 			const type = file.extension === 'md' ? 'content':'data'
 			return window.modules.http(file).then(response=>response[type])
 		}

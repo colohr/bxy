@@ -10,6 +10,7 @@
 
 	async function import_meta(locator, saves = false){
 		if(window.modules.has('meta') === false) await window.modules.import('meta')
+		locator = is.text(locator) && URL.is(locator) ? URL.get(locator):locator
 		locator = is.url(locator) ? locator:http.locator.meta(locator)
 		const extension = locator.extension
 		const notation = extension ? locator.file.replace(`.${extension}`,''):locator.basename

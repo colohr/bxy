@@ -21,8 +21,9 @@
 
 	//exports
 	return set_dictionaries({
-		alphabetic: is_alphabetic,
 		action: is_action,
+		alphabetic: is_alphabetic,
+		argument: is_argument,
 		array: is_array,
 		async: is_async,
 		callable: is_callable,
@@ -39,8 +40,10 @@
 		element_data: is_element_data,
 		email: is_email,
 		empty: is_empty,
+		even: is_even,
 		event: is_event,
 		error: is_error,
+		focusable: is_focusable,
 		function: is_function,
 		instance: is_instance,
 		iterator: is_iterator,
@@ -52,6 +55,7 @@
 		numeric: is_numeric,
 		number: is_number,
 		object: is_object,
+		odd: is_odd,
 		promise: is_promise,
 		prototype_identifier: is_prototype_identifier,
 		proxy: is_proxy,
@@ -59,6 +63,7 @@
 		slot: is_slot,
 		slotted: is_slotted,
 		set: is_set,
+		svg: is_svg,
 		symbol: is_symbol,
 		text: is_text,
 		TF: is_TF,
@@ -91,6 +96,7 @@
 			catch(e){ return false }
 		}
 	}
+	function is_argument(value){ return Object.prototype.toString.call(value) === '[object Arguments]' }
 	function is_array(value){ return is_object(value) && Array.isArray(value) }
 	function is_async(value){ return is_function(value) && value.constructor.name === 'AsyncFunction' }
 
@@ -136,8 +142,26 @@
 	function is_element_data(value){ return is_object(value) || is_json(value) }
 	function is_email(value){ return is_text(value) && email_regular_expression.test(value) }
 	function is_empty(value){ return !is_count(value) }
+	function is_even(index){ return is_number(index) && index % 2 === 0 }
 	function is_event(value){ return value instanceof Event }
 	function is_error(value){ return is_object(value) && value instanceof Error }
+
+	function is_focusable(element){
+		if(element.tabIndex > 0 || (element.tabIndex === 0 && element.getAttribute('tabindex') !== null)) return true
+		if(element.disabled) return false
+		switch(element.nodeName){
+			case 'A':
+				return !!element.href && element.rel !== 'ignore'
+			case 'INPUT':
+				return element.type !== 'hidden' && element.type !== 'file'
+			case 'BUTTON':
+			case 'SELECT':
+			case 'TEXTAREA':
+				return true
+			default:
+				return false
+		}
+	}
 
 	function is_function(value){ return typeof value === 'function' }
 
@@ -167,7 +191,10 @@
 
 	function is_number(value){ return (typeof value === 'number' || is_object(value) && value instanceof Number) && !isNaN(value) && isFinite(value) }
 
+
 	function is_object(value){ return typeof value === 'object' && value !== null }
+
+	function is_odd(index){ return is_number(index) && index % 2 !== 0 }
 
 	function is_promise(value){ return is_object(value) && value instanceof Promise }
 	function is_prototype_identifier(value){ return is_text(value) && value.startsWith('[object') && value.endsWith(']') }
@@ -178,6 +205,7 @@
 	function is_set(value){ return is_object(value) && value instanceof Set }
 	function is_slot(value){ return is_element(value) && value instanceof HTMLSlotElement }
 	function is_slotted(value){ return is_node(value) && is_nothing(value.assignedSlot) === false }
+	function is_svg(value){ return value instanceof SVGElement }
 	function is_symbol(value){ return typeof value === 'symbol'}
 
 	function is_text(value){ return typeof value === 'string' || (is_object(value) && value instanceof String)}

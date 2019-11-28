@@ -90,7 +90,7 @@
 
 				function on_resize(){
 					window.clearTimeout(resize_debounce)
-					resize_debounce = window.setTimeout(this.refresh, 100)
+					resize_debounce = window.setTimeout(this.refresh.bind(this), 100)
 				}
 
 				function on_scroll(){

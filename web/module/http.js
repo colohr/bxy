@@ -1,35 +1,39 @@
 (function define(...x){const _=this.modules?this.modules:module,__=(m,...a)=>_.define?_.define('http',{value:m(...a)}):_.exports=m(...a);return _.has&&_.has('http')?_.get('http'):(([m],y,...z)=>__(m,...(y.concat(z))))(x.splice(0,1),(x=x.map(i=>Array.isArray(i)?i.map(f=>f()):i).reduce((l,i)=>(Array.isArray(i)?l[0].push(...i):l.push(i),l),[[]]))[0],...x.slice(1, x.length));})
-(function (Assets, get_locator){
+(function (Assets, Response, Option, get_locator){
 	if(typeof this.FormData === 'undefined') this.FormData = Object
+	const HTTPModule = {
+		assets(){ return Assets.load_assets },
+		connected(){ return is_connected },
+		content(){ return get_http_content_type(true) },
+		content_headers(){ return get_http_content_type('headers') },
+		content_types(){ return window.modules.is.dictionary.content },
+		data(){ return get_http_setting('post', arguments[0], {'Content-Type': 'application/json', 'Accept': 'application/json'}) },
+		blob(){ return get_http_setting(Option({as:'blob'})) },
+		export(){ return get_http_evaluated_module },
+		import(){ return get_http_evaluated_module },
+		module(){ return get_http_evaluated_module },
+		get(){ return get_http_setting(arguments[0]) },
+		post(){ return get_http_setting(arguments[0]) },
+		search(){ return get_http_setting(arguments[0]) },
+		put(){ return get_http_setting(arguments[0]) },
+		locator(){ return get_locator() },
+		load(){ return get_http_load },
+		type(){ return get_http_content_type() },
+		Option(){ return Option },
+		Response(){ return Response }
+	}
+
 	//exports
 	return Assets(new Proxy(get_http_resource, {
 		get(o, field){
-			switch(field){
-				case 'assets': return Assets.load_assets
-				case 'connected': return is_connected
-				case 'content': return get_http_content_type(true)
-				case 'content_headers': return get_http_content_type('headers')
-				case 'content_types': return window.modules.is.dictionary.content
-				case 'data': return get_http_setting('post', field, {'Content-Type': 'application/json', 'Accept': 'application/json'})
-				case 'export':
-				case 'import':
-				case 'module':
-					return get_http_evaluated_module
-				case 'get':
-				case 'post':
-				case 'search':
-				case 'put':
-					return get_http_setting(field)
-				case 'locator': return get_locator()
-				case 'load': return get_http_load
-				case 'type': return get_http_content_type()
-				default:
-					console.trace(field)
-					break
-			}
-			return Reflect.get(o,field) || null
+			if(field in HTTPModule) return HTTPModule[field](field)
+			else if(field in o) return (typeof (o[field]) ? o[field].bind(o):o[field])
+			else if(field === Symbol.toPrimitive) return undefined
+			return null
 		},
-		set(o, field, value){ return (Assets[field] = value, true) }
+		has(o, field){ return field in HTTPModule || field in o },
+		ownKeys(target){ return Array.from(new Set(Object.getOwnPropertyNames(target).concat(Object.keys(HTTPModule)))) },
+		set(o, field, value){ return (Assets[field] = value, true) },
 	}), window.modules)
 
 	//scope actions
@@ -43,8 +47,6 @@
 		function get_value(o, field, type = null){ return (type = field in o.alias ? o.alias[field]:get_category_value(o, field), header === false ? type:(type = {'Content-Type': type}, header === 'headers' ? {headers: type}:type)) }
 	}
 
-	function get_http_document(text, content_type = 'text/html'){ return new DOMParser().parseFromString(text, content_type) }
-
 	async function get_http_evaluated_module(){ return (await get_http_resource(...arguments)).import() }
 
 	function get_http_load(...asset){
@@ -54,53 +56,16 @@
 		function on_response(response){ return field ? response[field]:response }
 	}
 
-	function get_http_response(locator, headers = {}){
-		return {
-			get content(){ return locator.responseText },
-			get data(){ return get_json(true) },
-			get document(){ return get_http_document(locator.responseText, headers['Content-Type']) },
-			async eval(){ return await get_module(locator.responseText) },
-			async export(exporter){ return await get_module(locator.responseText, exporter) },
-			async import(){ return await get_module(locator.responseText) },
-			async json(...x){ return get_json(...x) },
-			get meta(){ return get_meta(true) },
-			get module(){ try{ return get_module(locator.responseText).catch(e=>log_error('module',e)) }catch(e){ return log_error('module',e) } },
-			get response(){ return locator.response },
-			async text(){ return locator.responseText },
-			async yaml(...x){ return get_meta(...x) }
-		}
-
-		//scope actions
-		function get_json(return_response=false, default_value=null){
-			try{ return JSON.parse(locator.response) }
-			catch(e){
-				if(return_response === true) return locator.response
-				else if(default_value === null) console.error(e)
-			}
-			return default_value
-		}
-		function get_meta(return_response=false, default_value=null){
-			try{ return window.modules.meta.data(locator.response) }
-			catch(e){
-				if(return_response === true) return locator.response
-				else if(default_value === null) console.error(e)
-			}
-			return default_value
-		}
-		function log_error(type, error, ...x){
-			if(window.modules.log) window.modules.log.bug(`http.${type} -> ${locator.responseURL}`, error , locator,...x)
-			else console.error(`http.${type} -> ${locator.responseURL}`, error, locator, ...x)
-		}
-		async function get_module(content, exporter){ return await (typeof(exporter) === 'function' ? await exporter(content):await eval(content)) }
-	}
-
-	function get_http_setting(method, type, preset_headers){
-		method = method.toUpperCase()
-		return (location, options, headers)=> get_http_resource(location, get_method_options(options, headers))
+	function get_http_setting(){
+		const method = (Array.from(arguments).filter(item=>typeof(item)==='string')[0] || 'get').toUpperCase()
+		const type = Array.from(arguments).filter(item=>typeof (item) === 'string')[1] || null
+		const preset_headers = Array.from(arguments).filter(item=>item instanceof Object && (item instanceof Option === false))[0] || null
+		const preset_options = Array.from(arguments).filter(item=>item instanceof Option)[0] || {method, headers: {}}
+		return function Setting(location, options, headers){ return get_http_resource(location, get_method_options(options, headers)) }
 
 		//scope actions
 		function get_method_options(input, headers){
-			const options = Object.assign({method, headers: {}}, type === 'data' ? {body:input}:input)
+			const options = Object.assign(Option(preset_options), type === 'data' ? {body:input}:input)
 			if(preset_headers) options.headers = Object.assign(options.headers, preset_headers)
 			if(headers) options.headers = Object.assign(options.headers, headers)
 			return options
@@ -116,23 +81,26 @@
 
 	function get_http_resource(location, options){
 		options = typeof options === 'object' && options !== null ? options:{}
-		return new Promise((success, error)=>{
+		return new Promise(get_http_resource_promise)
+		//scope actions
+		function get_http_resource_promise(success,failed){
 			const locator = get_http_request(on_load, on_error, options)
-			locator.responseType = 'text'
+			locator.responseType = options.as || 'text'
 			locator.open(options.method || 'GET', location)
 			set_http_headers(locator, options, location).send(get_body())
+
 			//scope actions
 			function get_body(){
 				if(typeof options.body === 'object' && options.body !== null){
 					if(options.body instanceof FormData) return options.body
 					try{ return JSON.stringify(options.body) }
-					catch(e){ console.error(e) }
+					catch(error){ console.warn(`window.modules.http -> get_http_resource -> JSON.stringify(response.body)\nRequest: "${location}"\nError:${error.message}`); }
 				}
 				return undefined
 			}
-			function on_error(e){ return (console.warn(location),error(e)) }
-			function on_load(){ return success(get_http_response(locator, options.headers)) }
-		})
+			function on_error(error){ return (console.warn(location), failed(error)) }
+			function on_load(){ return success(Response(locator, options.headers)) }
+		}
 	}
 
 	function is_connected(){
@@ -163,14 +131,6 @@
 				return next()
 
 				//scope actions
-				//function load_element(item, asset = null){
-				//	return new Promise(function load_element_asset(load_success, load_error){
-				//		return (function get_asset(options){
-				//			return has_item(options) ? true:(options[options.source]=item.url, document[options.container].appendChild(window.modules.element.create(options.tag, Object.assign(options,item), load_success, load_error)), asset = null)
-				//		})({get container(){ return this.tag === 'link' ? 'head':'body' }, extension: `${item.url}`.split('.').filter((x, i, l)=>i === l.length - 1)[0], get tag(){ return ['css', 'html'].includes(this.extension) ? 'link':'script' }, get source(){ return this.tag === 'link' ? 'href':'src' }, locator:item.url }) === true ? load_success():true
-				//	})
-				//}
-
 				function load_items(...items){
 					return Promise.all(items.map(create_item))
 					//scope actions
@@ -187,7 +147,7 @@
 				async function load_module(item, value = null){
 					const {calls, url, inputs, module, notation} = Object.assign({inputs: [], calls: true, url: null, module: null}, item)
 					let name = typeof(module) === 'string' ? module:null
-					value = notation ? window.modules.data.get(window, notation):null
+					value = notation ? window.modules.dot.get(window, notation):null
 					if(value === null) value = await load_module_value()
 					if(name === null && typeof(value) === 'function') name = value.name
 					return name !== null ? results[name] = value:value
@@ -202,8 +162,9 @@
 					}
 				}
 
+				//REMOVE ASYNC
 				function next(){
-					for(const i of assets) return (assets.splice(0, 1), load_items(...(Array.isArray(i) ? i:[i]).map(item=>Object.assign({async: true, defer: true}, (typeof(item) === 'string' || item instanceof URL) ? {url: item}:item))).then(next).catch(error))
+					for(const i of assets) return (assets.splice(0, 1), load_items(...(Array.isArray(i) ? i:[i]).map(item=>Object.assign({defer:true}, (typeof(item) === 'string' || item instanceof URL) ? {url: item}:item))).then(next).catch(error))
 					return success(results)
 				}
 			})
@@ -220,9 +181,9 @@
 	}
 
 	function load_element(item, asset=null){
-		return new Promise(function load_element_asset(load_success, load_error){ (function add_asset(options= asset_options()){ return has_item(options) ? load_success():(options[options.source]=item.url, document[options.container].appendChild(window.modules.element.create(options.tag, Object.assign(options,item), load_success, load_error)), asset = null) })() })
+		return new Promise(function load_element_asset(load_success, load_error){ (function add_asset(options= asset_options()){ return has_item(options) ? load_success():(options[options.source]=item.url, window.document.head.appendChild(window.modules.element.create(options.tag, Object.assign(options,item), load_success, load_error)), asset = null) })() })
 		//scope actions
-		function asset_options(){ return {get container(){ return this.tag === 'link' ? 'head':'body' }, extension: `${item.url}`.split('.').filter((x, i, l)=>i === l.length - 1)[0], get tag(){ return ['css', 'html'].includes(this.extension) ? 'link':'script' }, get source(){ return this.tag === 'link' ? 'href':'src' }, locator: item.url} }
+		function asset_options(){ return {extension: `${item.url}`.split('.').filter((x, i, l)=>i === l.length - 1)[0], get tag(){ return ['css', 'html'].includes(this.extension) ? 'link':'script' }, get source(){ return this.tag === 'link' ? 'href':'src' }, locator: item.url} }
 	}
 
 	function worker_assets_loader(http){
@@ -242,9 +203,75 @@
 		},http)
 	}
 
+}, function Response(){
+	function Response(locator,headers){
+		if(this instanceof Response === false) return new Response(...arguments)
+		this.locator = locator
+	}
+	Response.prototype = {
+		get content(){ return this.locator.responseText },
+		get content_type(){ return this.locator.getResponseHeader('Content-Type') || 'text/plain' },
+		get data(){ return get_json.call(this,true) },
+		get document(){ return get_http_document(this.content, this.media_type) },
+		async eval(){ return await get_module(this.content) },
+		async export(exporter){ return await get_module(this.content, exporter) },
+		async import(){ return await get_module(this.content) },
+		async json(...x){ return get_json.call(this,...x) },
+		get media_type(){ return this.content_type.split(';')[0] },
+		get meta(){ return get_meta.call(this,true) },
+		get module(){
+			try{ return get_module(this.content).catch(e=>log_error.call(this,'module', e)) }
+			catch(e){ return log_error.call(this,'module', e) }
+		},
+		get response(){ return this.locator.response },
+		async text(){ return this.locator.responseText },
+		async yaml(...x){ return get_meta.call(this,...x) }
+	}
+
+	//exports
+	return Response
+
+	//scope actions
+	function get_http_document(text, content_type = 'text/html'){ return new DOMParser().parseFromString(text, content_type) }
+
+	function get_json(return_response = false, default_value = null){
+		try{ return JSON.parse(this.locator.response) }
+		catch(e){
+			if(return_response === true) return this.locator.response
+			else if(default_value === null) console.error(e)
+		}
+		return default_value
+	}
+
+	function get_meta(return_response = false, default_value = null){
+		try{ return window.modules.meta.data(this.locator.response) }
+		catch(e){
+			if(return_response === true) return this.locator.response
+			else if(default_value === null) console.error(e)
+		}
+		return default_value
+	}
+
+	async function get_module(content, exporter){ return await (typeof (exporter) === 'function' ? await exporter(content):await eval(content)) }
+
+	function log_error(type, error, ...x){
+		if(window.modules.log) window.modules.log.bug(`http.${type} -> ${this.locator.responseURL}`, error, this.locator, ...x)
+		else console.error(`http.${type} -> ${this.locator.responseURL}`, error, this.locator, ...x)
+	}
+
+}, function Option(){
+
+	function Option(){
+		if(this instanceof Option === false) return new Option(...arguments)
+		Object.assign(this, ...arguments)
+	}
+	Option.prototype = {method:'GET'}
+	//exports
+	return Option
+
 }],function get_locator(){
 	const unpkg = new URL(`https://unpkg.com/`)
-	const locators = {class: null, classes: {folder: 'class'}, component: null, data: null, external(){ return unpkg.origin === window.modules.get('@url').origin }, function: {prefix: 'function.'}, json: {extension: 'json',folder:'data'}, meta: {folder: 'data', extension: 'meta'}, mixin: {extension: 'js'}, module: null, package: null, prototype: {suffix: '.prototype'}, script: {index: true}, storage:storage_name, type: null, unpack(...x){ return unpkg.at(...x) }, web: {folder: './'}, worker: null}
+	const locators = {class: null, classes: {folder: 'class'}, component: null, data: null, external(){ return unpkg.origin === window.modules.get('@url').origin }, function: {prefix: 'function.'}, json: {extension: 'json',folder:'data'}, meta: {folder: 'data', extension: 'meta'}, mixin: {extension: 'js'}, module: null, package: null, prototype: {suffix: '.prototype'}, script: {index: true}, storage:storage_name, structure:null, type: null, unpack(...x){ return unpkg.at(...x) }, web: {folder: './'}, worker: null}
 	return new Proxy(locators,{ get(o,field){ return field in o ? get_url(field, o[field]):Reflect.get(o,field) || get_url(field, {local:true}) } })
 
 	//scope actions

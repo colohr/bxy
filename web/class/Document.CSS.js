@@ -49,9 +49,7 @@
 			this.get_value = x[1]
 
 			//scope actions
-			function get_fields(){
-				return x[0].replace(/ /g,'').split(',var(').map(i=>i.replace(/var\(/g, '').replace(/\)/g, '').replace('--','').trim()).filter(i=>i.length)
-			}
+			function get_fields(){ return x[0].replace(/ /g,'').split(',var(').map(i=>i.replace(/var\(/g, '').replace(/\)/g, '').replace('--','').trim()).filter(i=>i.length) }
 		}
 		get value(){
 			for(const field of this.fields){
@@ -225,9 +223,7 @@
 	}
 
 	function get_fixed_name(key){
-		for(const character of special_characters){
-			key = key.replace(character, '.')
-		}
+		for(const character of special_characters) key = key.replace(character, '.')
 		return key.split('.').map(i=>i.trim()).filter(i=>i.length).join('.')
 	}
 

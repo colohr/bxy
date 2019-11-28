@@ -11,10 +11,12 @@
 			this.import = import_asset
 			this.locator = get_locator
 		}
+		get Container(){ return Container }
 		container(){ return Container.target(...arguments) }
 		get Dataset(){ return Dataset }
 		dataset(){ return Dataset.target(...arguments)  }
 		delete(notation){ return (dot.delete(this.collection,notation),this) }
+		get engine(){ return window.modules.lit }
 		get(notation){ return this.has(notation) ? dot.get(this.collection,notation):null }
 		has(notation){ return dot.has(this.collection, notation) }
 		set(notation,template){ return (dot.set(this.collection, notation,template), this) }
@@ -50,18 +52,22 @@
 	const is = window.modules.is
 	const templet_attribute = 'templet'
 	const templet_container = Symbol('Container element to render lit-html templates.')
-
+	const templet_host = Symbol('DocumentFragment as templet container')
 	//exports
 	return class Container{
 		static get add(){ return add_container }
 		static get assign(){ return assign_container }
+		static get component(){ return set_component }
 		static get get(){ return get_container }
 		static get has(){ return has_container }
+		static get host(){ return templet_host }
 		static get is(){ return is_container }
 		static get set(){ return set_container }
+
 		static target(element,set_container){
 			if(set_container === true) return this.assign(element)
 			else if(is.element(set_container)) return this.set(element, set_container)
+			else if(is.document(element.shadowRoot) || set_container===templet_host) return this.component(element,set_container)
 			return this.get(element)
 		}
 	}
@@ -74,16 +80,25 @@
 	function assign_container(element){ return (element.setAttribute(templet_attribute,''), element) }
 
 	function get_container(element, container = null){
-		container = element.querySelector(`[${templet_attribute}]`)
-		return container === null && element.shadowRoot ? element.shadowRoot.querySelector(`[${templet_attribute}]`):container
+		container = is_host(element) ? element[templet_container]:element.querySelector(`[${templet_attribute}]`)
+		return container === null && element.shadowRoot ? element.shadowRoot.querySelector(`[${templet_attribute}]`):container || element
 	}
 
 	function has_container(element){
-		if(is.element(element[templet_container]) || is_container(element)) return true
-		return is.element(element[templet_container] = get_container(element))
+		const type = is_host(element) ? 'document':'element'
+		if(is[type](element[templet_container]) || is_container(element)) return true
+		return is[type](element[templet_container] = get_container(element))
 	}
 
 	function is_container(element){ return element.hasAttribute(templet_attribute) }
+
+	function is_host(element){ return templet_host in element }
+
+	function set_component(element){
+		if(is.document(element.shadowRoot) === false) element.attachShadow({mode:'open'})
+		element[templet_host]=true
+		return element[templet_container] = element.shadowRoot
+	}
 
 	function set_container(element, container){
 		if(is.element(container) === false) return add_container(element)
@@ -101,7 +116,7 @@
 		static target(element){ return templet_dataset in element ? element[templet_dataset]:element[templet_dataset] = new this(element) }
 		constructor(element){
 			this.element = element
-			const notation = this.container.xml.templet
+			const notation = 'xml' in this.container ? this.container.xml.templet:this.element.xml.templet
 			if(notation) this.template(notation)
 		}
 		clear(){ return clear.call(this) }

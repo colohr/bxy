@@ -1,0 +1,15 @@
+{
+  "@design": {
+    "colors": [],
+    "styles": {}
+  },
+  "name": "function.scope.frame",
+  "project": {
+    "main": {
+      "assets": [
+        "scope-frame-lesson.js"
+      ]
+    }
+  },
+  "version": "0.0.1"
+}

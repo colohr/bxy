@@ -1,0 +1,18 @@
+
+
+{
+  "design": {
+    "colors": [],
+    "styles": {}
+  },
+  "name": "function.style.radial.layout",
+  "project": {
+    "main": {
+      "assets": [
+        "radial-layout-lesson.js",
+        "index.js"
+      ]
+    }
+  },
+  "version": "0.0.1"
+}

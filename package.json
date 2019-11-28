@@ -1,10 +1,10 @@
 {
   "browser": "./web/modules.js",
   "name": "bxy",
-  "version": "0.1.101",
+  "version": "0.1.114",
   "dependencies": {
     "localforage": "^1.7.3",
-    "lit-html": "^1.0.0-rc.2",
+    "lit-html": "^1.1.1",
     "bxy.font": "^0.0.3"
   },
   "description": "Web Modules for the Browser",
@@ -75,17 +75,17 @@
         "define": false,
         "entry": {
           "internal": "web/script/templet/index.js",
-          "wait": [  "modules.Templet" ],
+          "wait": [  "modules.Templet"],
           "notation": "Templet"
         }
       },
       "node_modules": [
         {
           "name": "lit-html",
-          "external": "https://unpkg.com/lit-html/lit-html.js",
+          "external": "https://unpkg.com/lit-html@1.1.1/lit-html.js",
           "internal": "node_modules/lit-html/lit-html.js",
           "es": true,
-          "notation": "Templet.engine"
+          "notation": "lit"
         }
       ]
     },

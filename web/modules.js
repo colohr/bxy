@@ -5,9 +5,10 @@ const π = Math.PI;
 	//scope actions
 	function define_modules(exporter, ...inputs){ return exporter(environment, ...inputs).then(dispatch_modules) }
 	async function dispatch_modules(modules){ environment.dispatchEvent(new CustomEvent('modules', {bubbles:true,composed:true,detail: modules})); }
-})(this, async function ModulesExporter(environment, element, Project, Cookie, Logger){
+})(this, async function ModulesExporter(environment, element, Project, Cookie, Keyboard){
 	let load = []
-	class Modules{
+
+	class Modules extends static_mixin(){
 		static get base(){ return this.element.base }
 		static get url(){ return this.element.url }
 		static get version(){ return this.package.version }
@@ -15,18 +16,21 @@ const π = Math.PI;
 		get ['@modules'](){ return this.get('@package.modules')  }
 		get ['@package'](){ return this.constructor.package }
 		get ['@url'](){ return this.constructor.url }
-		get base(){ return this.get('project.package') || {} }
+		get ['@emitter'](){ return this.dot.get(window, 'document.documentElement') || window }
+		argument(){ return this.is.argument(arguments[0]) ? arguments[0]:arguments }
+		create(){ return create_type(this, ...arguments) }
 		define(...x){ return define_module(this, ...x) }
 		get(notation){ return get_module(this, notation) }
 		has(notation){ return has_module(this, notation) }
-		get let(){ return let_module(this) }
-		get locations(){ return this.get('project') || {} }
+		get resource(){ return this.ProjectPackage.ModuleResource }
 		set(notation, module){ return set_module(this, notation, module) }
 		get storage(){ return this.import.storage() }
-		tick(action){  return window.setTimeout(action,10) }
 		get url(){ return URL.get }
 		get window_locator(){ return window.location.href.replace(`${window.location.search}`, '').replace(`${window.location.hash}`, '') }
 	}
+	Modules.prototype.keyboard=Keyboard()
+	Modules.prototype.static = static_module
+	Modules.prototype.static.mixin = static_mixin
 	Modules.element = element
 	Modules.package = await environment.fetch(element.package).then(x=>x.json())
 	if(element.url.href.includes('bxy@latest')) element.url = new URL(element.url.href.replace('bxy@latest', `bxy@${Modules.package.version}`))
@@ -35,6 +39,12 @@ const π = Math.PI;
 	return await load_assets(environment.modules = new Modules())
 
 	//scope actions
+	function create_type(modules, Type, ...properties){
+		if(modules.is.function(Type)) return new Type(...properties)
+		else if(modules.is.object(Type)) Type = Object.create(Type)
+		return new Object(properties.reduce((object,entry)=>Object.assign(object,entry)),Type)
+	}
+
 	async function load_assets(modules){
 		return new Promise(load_assets_promise)
 
@@ -65,7 +75,7 @@ const π = Math.PI;
 			function set_project(){
 				return Project(Modules.base).then(on_project).then(success)
 				//scope actions
-				function on_project(project){ return (Cookie(modules),Logger(),project.at('design')?modules.import.class('Design'):null,project) }
+				function on_project(project){ return (Cookie(modules),project.at('design')?modules.import.class('Design'):null,project) }
 			}
 		}
 	}
@@ -107,6 +117,17 @@ const π = Math.PI;
 		return modules.get(notation)
 	}
 
+	function static_mixin(Base){
+		return class StaticMixin extends (Base=Base||class StaticBase{}){
+			dispatch(){ return (environment.modules['@emitter'].dispatch(...arguments), this) }
+			off(){ return (environment.modules['@emitter'].off(...arguments),this) }
+			on(){ return (environment.modules['@emitter'].on(...arguments),this) }
+			once(){ return (environment.modules['@emitter'].once(...arguments), this) }
+			send(){ return this.dispatch(...arguments) }
+		}
+	}
+	function static_module(notation){ return this.dot.get(this.constructor, notation) }
+
 },
 async function get_element(script = null){
 	//exports
@@ -124,6 +145,7 @@ async function get_element(script = null){
 	}
 
 	function set_element(element){
+		const embedded = element.hasAttribute('embedded')
 		element.setAttribute('id', 'bxy')
 		element.base = window.document.head.querySelector('base')
 		if(!element.base) (element.base = window.document.createElement('base'), element.base.href = new URL(window.location.href))
@@ -135,35 +157,39 @@ async function get_element(script = null){
 		element.url = new URL('web/', element.module_url)
 		element.package =  new URL('package.json', element.module_url)
 		element.base.url = element.hasAttribute('meta') ? new URL('package.meta', element.base.href):new URL('package.json', element.base.href)
+		if(embedded) element.base.setAttribute('embedded','')
 		return element
 	}
 
 }, function Project(element){
 	const {dot, is} = window.modules
-	return new Promise(async success=>(new class Project{
-		constructor(data){
+	const Project = window.modules.set('ProjectPackage', class Project{
+		constructor(data, on_load){
 			if(dot.has(data, 'project') === false) data.project = {}
 			this.package = data
+			if(element.hasAttribute('embedded')) delete this.package.project.main
 			this.element = element
 			this.main = create_main(this, dot.get(data, 'project.main'))
-			this.domain = create_domain(this,data)
+			this.domain = create_domain(this, data)
+			if(is.text(this.domain.name) && this.domain.name.startsWith('localhost')) this.domain.local = true
 			this.subdomain = create_subdomain(this, dot.get(data, 'project.subdomain'))
-			load_project(window.modules.set('project', this)).then(success).catch(console.error)
+			load_project(window.modules.set('project', this)).then(on_load).catch(console.error)
 
 			//scope actions
-			async function load_project(project, assets=[]){
-				for(const field in project.subdomain) dot.set(project,field,project.subdomain[field])
-				if(dot.has(project, 'package.project.locations')) await create_locations(dot.get(project,'package.project.locations'))
-				if(dot.has(project, 'main.define')) await define_base_data(dot.get(project,'main.define'))
+			async function load_project(project, assets = []){
+				for(const field in project.subdomain) dot.set(project, field, project.subdomain[field])
+				if(dot.has(project, 'package.project.locations')) await create_locations(dot.get(project, 'package.project.locations'))
+				if(dot.has(project, 'main.define')) await define_base_data(dot.get(project, 'main.define'))
 				Object.defineProperty(project.package, 'locations', {get(){ return window.modules.project }})
 				if(dot.has(project, 'main.assets')){
 					for(const item of dot.get(project, 'main.assets')){
 						if(typeof item === 'string') assets.push({url: project.main.url(item)})
 						else assets.push(item)
 					}
+
 				}
 				if(assets.length) window.modules.import.assets(...assets)
-				if(dot.has(project,'main.wait')) await window.modules.wait(...project.main.wait)
+				if(dot.has(project, 'main.wait')) await window.modules.wait(...project.main.wait)
 
 				//exports
 				return project
@@ -179,29 +205,31 @@ async function get_element(script = null){
 					await create_location_type_values(arguments[1], 'locations', {folder, location, origin})
 				}
 
-				async function create_location_type_values(type, field, {origin,location,folder}){
+				async function create_location_type_values(type, field, {origin, location, folder}){
 					if(dot.has(type, field)) for(const item of Object.entries(dot.get(type, field))){
-						const entry = field==='locations' ?item[0]:item[1]
-						const locator = field==='locations'? join_locations(folder, item[1]):join_locations(folder, entry)
+						const entry = field === 'locations' ? item[0]:item[1]
+						const locator = field === 'locations' ? join_locations(folder, item[1]):join_locations(folder, entry)
 						const url = await get_url(origin, field === 'items' ? `${locator}/`:locator)
 						if(field === 'assets') assets.push({location, url})
-						else dot.set(project,entry, Object.assign(url,dot.has(project,entry)?dot.get(project, entry):null))
+						else dot.set(project, entry, Object.assign(url, dot.has(project, entry) ? dot.get(project, entry):null))
 					}
 				}
 
 				async function create_locations(locations){
 					project[Symbol.for('locations')] = locations
 					return await Promise.all(Object.entries(locations).map(get_location))
+
 					//scope actions
 					function get_location(fieldset){ return create_location(...fieldset) }
 				}
 
 				async function define_base_data(definitions){
 					for(const field in definitions) dot.set(project, field, await (await window.modules.http(get_base_item(definitions[field]))).data)
+
 					//scope actions
 					function get_base_item(item){
 						if(item.includes('http')) return new URL(item)
-						else if(item.includes('@')) return (item=item.split('@'), new URL(item[0], dot.get(project, item[1])))
+						else if(item.includes('@')) return (item = item.split('@'), new URL(item[0], dot.get(project, item[1])))
 						return project.main.url(item)
 					}
 				}
@@ -212,19 +240,25 @@ async function get_element(script = null){
 					return join_locations(...locations)
 				}
 
-				function get_origin(location){ return dot.has(location,'subdomain') ? project.subdomain[location.subdomain]:URL.join() }
-				async function get_url(origin, value){ return (value=is.text(value)&&value.includes('${')?window.modules.tag(value):value,is.dictionary.locator.url(new URL(is.text(value)?value:'/',origin))) }
+				function get_origin(location){
+					const has_subdomain = dot.has(location, 'subdomain')
+					if(project.domain.local && (dot.has(location, 'local') || has_subdomain)) return URL.join('/')
+					return has_subdomain ? project.subdomain[location.subdomain]:URL.join()
+				}
+
+				async function get_url(origin, value){ return (value = is.text(value) && value.includes('${') ? window.modules.tag(value):value, is.dictionary.locator.url(new URL(is.text(value) ? value:'/', origin))) }
+
 				function join_locations(...location){ return location.join('/').split('/').filter(i=>i.trim().length).join('/') }
 			}
 
 			function create_domain(project, data){
 				if(dot.has(data, 'project.domain') === false) data.project.domain = {}
-				if(dot.has(data, 'project.domain.protocol') === false) data.project.domain.protocol = project.element.url.protocol.replace(':','')
+				if(dot.has(data, 'project.domain.protocol') === false) data.project.domain.protocol = project.element.url.protocol.replace(':', '')
 				if(dot.has(data, 'project.domain.name') === false) data.project.domain.name = project.element.url.hostname
 				return data.project.domain
 			}
 
-			function create_main(project,data){
+			function create_main(project, data){
 				if(is.data(data) === false) data = {}
 				data.url = get_main_url
 				return data
@@ -234,7 +268,7 @@ async function get_element(script = null){
 					let location = undefined
 					if(dot.has(project, locator[0])) location = dot.get(project, locator[0])
 					if(location instanceof URL === false) location = undefined
-					else locator.splice(0,1)
+					else locator.splice(0, 1)
 					if(is.nothing(location) && dot.has(project, 'main.location')) location = dot.get(project, 'main.location')
 					if(location instanceof URL === false) location = undefined
 					if(is.nothing(location) === false) locator.push(location)
@@ -242,7 +276,7 @@ async function get_element(script = null){
 				}
 			}
 
-			function create_subdomain(project, data, subdomain={}){
+			function create_subdomain(project, data, subdomain = {}){
 				if(is.array(data) === false) data = []
 				for(const name of data) subdomain[name] = new URL(`${project.domain.protocol}://${name}.${project.domain.name}/`)
 				return subdomain
@@ -250,12 +284,27 @@ async function get_element(script = null){
 		}
 		get at(){ return project_package_attribute(this.package) }
 		get dependencies(){ return this.package.dependencies }
-	}(await load_meta(element))))
+	})
+	Project.ModuleResource = project_package_module_resource()
+	return new Promise(async success=>(new Project(await load_meta(element), success)))
 
 	//scope actions
 	async function load_meta(element,base=null){
-		try{ base = await (element.url.extension==='meta'?window.modules.meta.import(element.url):(await window.modules.http(element.url)).json(false, {})) }catch(e){  }
+		try{
+			if(element.xml.variable){
+				base = window.modules.dot.get(window, element.xml.variable)
+				window.modules.dot.delete(window, element.xml.variable)
+				if(window.modules.is.text(base)) base = window.modules.meta.data(base)
+			}
+			else if (element.url.extension === 'meta') base = await window.modules.meta.import(element.url).catch(on_invalid_package)
+			else base = (await window.modules.http(element.url).catch(on_invalid_package)).json(false, {})
+		}
+		catch(error){ on_invalid_package(error)  }
 		return window.modules.is.data(base) ? base:{}
+		//scope actions
+		function on_invalid_package(error){
+			console.warn(`No valid package assigned to 'modules.project' from -> "${element.url}"\nError: ${error.message}`)
+		}
 	}
 
 	function project_package_attribute(){
@@ -277,6 +326,45 @@ async function get_element(script = null){
 			}
 			function get_value(o,field){ return dot.has(o, `@${field}`) ? dot.get(o, `@${field}`):(dot.has(o, field) ? dot.get(o, field):null) }
 			function has_value(o,field){ return dot.has(o, field) || dot.has(o, `@${field}`) }
+		}
+	}
+
+	function project_package_module_resource(){
+		function PackageModuleResource(location, ...package_annotation){
+			if(this instanceof PackageModuleResource === false) return load_package_json(new PackageModuleResource(...arguments), ...package_annotation)
+			this.location = location instanceof URL ? location:HTMLElement.SourceCode.url(location)
+		}
+		PackageModuleResource.prototype = {
+			get assets(){ return [this.index,this.dependencies] },
+			get dependencies(){ return Object.entries(window.modules.dot.get(this, `nest.dependencies`) || {}).map(map_asset_location, this)  },
+			get identity(){ return this.location.basename.replace(`.${this.location.extension}`, '') },
+			get index(){ return package_index.call(this) },
+			get nest(){ return window.modules.dot.get(this, `json.nest.${this.identity}`) }
+		}
+		//exports
+		return PackageModuleResource
+
+		//scope actions
+		async function load_package_json(package_module_resource, ...package_annotation){
+			const annotated = package_annotation.filter(notation=>window.modules.has(notation) || window.modules.is.defined(notation)).length === package_annotation.length
+			try{
+				if(annotated === false){
+					if(window.modules.has('meta') === false) await window.modules.import('meta')
+					package_module_resource.json = await window.modules.import.meta(package_module_resource.location.at('package.json'))
+					await window.modules.import.assets(...package_module_resource.assets)
+				}
+			}
+			catch(error){
+				console.warn(`Modules: load_package_json() -> \nInvalid package.json from -> "${package_module_resource}"\nError: ${package_module_resource.error = error}`)
+			}
+			return package_module_resource
+		}
+
+		function map_asset_location(asset){ return URL.is(asset[1]) ? URL.get(asset[1]):this.location.at(asset[1]) }
+
+		function package_index(){
+			const file = window.modules.dot.get(this, 'json.browser') || window.modules.dot.get(this, 'json.main')
+			return file ? this.location.at(file):null
 		}
 	}
 
@@ -310,64 +398,84 @@ async function get_element(script = null){
 		window.document.cookie = `${field}=${value}; ${expires}; path=${path}`
 		return this
 	}
-},
-function Logger(){
-	const Log = log_bug
-	Log.bug = log_bug
-	Log.error = log_error
-	Log.label = label
-	Log.value = log_value
+}, function Keyboard(){
+
+	const numeric = {lock: 144, 0:96, 1:97, 2:98, 3:99, 4:100, 5:101, 6:102, 7:103, 8:104, 9:105, multiply:106, add:107, subtract:109, decimal:110, divide:111}
+	const functional = {scroll: 145, end: 35, home: 36, up: 33, down: 34, insert: 45, delete: 46, f1: 112, f2: 113, f3: 114, f4: 115, f5: 116, f6: 117, f7: 118, f8: 119, f9: 120, f10: 121, f11: 122, f12: 123 }
+	const keymap = {
+		0:48,1:49,2:50,3:51,4:52,5:53,6:54,7:55,8:56,9:57,
+		a:65,b:66,c:67,d:68,e:69,f:70,g:71,h:72,i:73,j:74,k:75,l:76,m:77,n:78,o:79,p:80,q:81,r:82,s:83,t:84,u:85,v:86,w:87,x:88,y:89,z:90,
+		accent: 192, get alt(){ return this.option }, get arrow(){ return {down:this.down,left:this.left,right:this.right,up:this.up} },
+		backslash: 220, backspace: 8, get bracket(){ return {close:this.close, open:this.open} }, break: 19,
+		capitals:20, get caps(){ return this.capitals }, close: 221, comma: 188, command: { left: 91, right:93 }, control: 17,
+		dash: 189, down: 40, enter: 13, equal:187, escape: 27,
+		left: 37, open: 219, option: 18, period: 190, quote: 222, right: 39,
+		semicolon: 186, get select(){ return this.command.right }, shift: 16, slash:191, space: 32,
+		tab: 9, up: 38, get windows(){ return {left:this.command.left, right: 92} }
+	}
+
+	function Keyboard(event){
+		if(this instanceof Keyboard === false) return new Keyboard(...arguments)
+		if(arguments[0] instanceof Event) this.event = arguments[0]
+		else this.field = arguments[0]
+		this.field = this.event ? this.event.keyCode || this.event.charCode || this.event.which:arguments[0]
+		this.key = get(this.field) || null
+		if(this.key){
+			if(typeof(this.key.code)==='number') this[this.key.code]=true
+			this[this.key.name]=true
+			this[this.key.fieldset]=true
+			this.name=this.key.name
+		}
+	}
+	Keyboard.numeric=numeric
+	Keyboard.functional=functional
+	Keyboard.keymap=keymap
 
 	//exports
-	return window.modules.set('log','log' in window ? Log:window.log = Log)
+	return new Proxy(Keyboard,{get(target,field){return get(field)} })
 
-	//shared actions
-	function label(text, style = 'rgba(0,123,255,1)'){
-		return [`%c${text}`, get_style()]
 
-		//shared actions
-		function get_style(){
-			if(typeof style === 'string') return `color:${style}`
-			else if(typeof style === 'object' && style !== null) return Object.keys(style).map(field=>`${field}:${style[field]};`).join(' ')
-			return ''
+	//scope actions
+	function get(field){
+		if(field in Keyboard) return fieldset(Keyboard[field], field)
+		if(typeof(field)==='string') field = field.toLowerCase()
+		let value = fieldset(keymap, 'keymap').get(field)
+		if(value === null){
+			if((value = fieldset(functional, 'functional').get(field)) === null){
+				value = fieldset(numeric, 'numeric').get(field)
+			}
 		}
+		return value
 	}
-
-	function log_bug(name, ...logs){
-		console.group(...label(`Bug -> ${name}`, 'rgba(85,65,236,1)'))
-		for(const item of logs){
-			log_value(item)
-			console.log(`%c-------------------`, 'color:#ddd')
+	function fieldset(){
+		if(arguments[0] instanceof Object === false) return null
+		return {
+			data:arguments[0],
+			entry:arguments.length > 1 ? arguments[1]:null,
+			get fields(){ return Object.keys(this.data) },
+			get entries(){ return Object.entries(this.data) },
+			get sets(){ return this.values.map(fieldset).filter(code=>code!==null) },
+			get(){
+				let value = {entry:null,index:-1, get code(){ return this.entry[1] }, get name(){ return this.entry[0] } }
+				if(invalid(value.index = this.fields.indexOf(arguments[0]))){
+					if(invalid(value.index = this.values.indexOf(arguments[0]))){
+						for(const set of this.sets){
+							if(invalid(value = set.get(arguments[0])) === false){
+								value.index = set.entry
+								break
+							}
+						}
+					}
+				}
+				if(invalid(value)===false && invalid(value.index) === false) {
+					value.entry=this.entries[value.index]
+					value.fieldset=this.entry
+				}
+				return invalid(value) || invalid(value.index) ? null:value
+			},
+			get values(){ return Object.values(this.data) }
 		}
-		console.groupEnd()
+		//scope actions
+		function invalid(index){ return index === null || index === -1 }
 	}
-
-	function log_error(log){
-		console.group(...label(`Error -------------------- \n\t -> "${log.message}"`, 'rgba(255,115,0,1)'))
-		console.error(log)
-		console.groupEnd()
-	}
-
-	function log_table(value){
-		if(console.table && value instanceof HTMLElement === false){
-			console.groupCollapsed(`%c•••••••••TABLE••••••••••`, 'color:rgba(89,73,81,1)')
-			console.table(value)
-			console.groupEnd()
-		}
-		else console.dir(value)
-	}
-
-	function log_value(value, ...labels){
-
-		if(labels.length) console.log(label(...labels))
-		if(value instanceof Error) log_error(value)
-		else if(typeof value === 'object' && value !== null){
-			if(value instanceof HTMLElement) console.log(value)
-			else try{ console.log(`%c==============\n${JSON.stringify(value, null, 2)}\n==============`, 'color:seagreen') }
-			catch(e){ }
-			log_table(value)
-		}
-		else console.log(value)
-	}
-
 })

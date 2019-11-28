@@ -1,0 +1,15 @@
+
+#Definition for Design class module
+design:
+  colors: []
+  styles: {}
+
+project:
+  main:
+    assets:
+      - radial-layout-lesson.js
+      - index.js
+
+name: function.style.radial.layout
+
+version: 0.0.1

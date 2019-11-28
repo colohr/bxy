@@ -30,16 +30,19 @@
 		return null
 		//scope actions
 		function on_load(){ return dependency.wait ? wait(...dependency.wait):true }
-		function on_module(){ return dependency.notation?window.modules.set(dependency.notation, dot.get(window, dependency.variable)):dot.get(window, dependency.variable) }
+		function on_module(){ return dependency.notation&& window.modules.has(definition.notation) === false ?window.modules.set(dependency.notation, dot.get(window, dependency.variable)):dot.get(window, dependency.variable) }
 	}
 
 	async function load_es_dependency(dependency){
-		try{ return await import(dependency.locator).then(on_module) }
+		try{
+			if(dependency.notation && window.modules.has(dependency.notation)) return window.modules.get(dependency.notation)
+			return await import(dependency.locator).then(on_module)
+		}
 		catch(error){ console.trace(error)}
 		return null
 
 		//scope actions
-		function on_module(definition){ return dependency.notation ? window.modules.set(dependency.notation, definition):definition }
+		function on_module(definition){ return dependency.notation && window.modules.has(dependency.notation) === false ? window.modules.set(dependency.notation, definition):definition }
 	}
 
 	async function load_module(name){
@@ -62,7 +65,10 @@
 		return null
 	}
 
-	function reduce(){ return (arguments[0][arguments[1].notation] = eval(`({get(){ return window.modules.dot.get(window,"${arguments[1].variable}") }})`), arguments[0]) }
+	function reduce(){
+		if(window.modules.has(arguments[1].notation)) return arguments[0]
+		return (arguments[0][arguments[1].notation] = eval(`({get(){ return window.modules.dot.get(window,"${arguments[1].variable}") }})`), arguments[0])
+	}
 
 })
 
