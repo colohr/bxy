@@ -6,3 +6,5 @@ removed
 .DS_Store
 */.DS_Store
 attributions
+web/evaluate-function/
+web/evaluate-modules/

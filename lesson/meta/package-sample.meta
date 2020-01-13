@@ -1,0 +1,8 @@
+name: lesson-meta-package-sample
+#Project properties
+project:
+  #Webapp entry point
+  main:
+    assets:
+      - meta/index.js
+version: 0.0.1

@@ -130,6 +130,7 @@ const π = Math.PI;
 
 },
 async function get_element(script = null){
+	const protocol_prefix = /(.+):\/\/(.+)/i
 	//exports
 	return set_element(get_script())
 
@@ -156,9 +157,17 @@ async function get_element(script = null){
 		if(element.module_url.origin.includes('https://unpkg.com') && !element.module_url.href.includes('@')) element.module_url = new URL('https://unpkg.com/bxy@latest/')
 		element.url = new URL('web/', element.module_url)
 		element.package =  new URL('package.json', element.module_url)
-		element.base.url = element.hasAttribute('meta') ? new URL('package.meta', element.base.href):new URL('package.json', element.base.href)
+		element.base.url = package_url(element.getAttribute('meta'))
 		if(embedded) element.base.setAttribute('embedded','')
 		return element
+		//scope actions
+		function package_url(attribute){
+			if(attribute && (attribute=attribute.trim()) && attribute.endsWith('.meta')){
+				if(protocol_prefix.test(attribute)) return new URL(attribute)
+				return new URL(attribute, window.location.href)
+			}
+			return new URL(`package.${attribute===null?'json':'meta'}`,element.base.href)
+		}
 	}
 
 }, function Project(element){

@@ -3,31 +3,32 @@
 	if(typeof this.FormData === 'undefined') this.FormData = Object
 	const HTTPModule = {
 		assets(){ return Assets.load_assets },
+		blob(){ return get_http_setting(Option({as: 'blob'})) },
 		connected(){ return is_connected },
 		content(){ return get_http_content_type(true) },
 		content_headers(){ return get_http_content_type('headers') },
 		content_types(){ return window.modules.is.dictionary.content },
 		data(){ return get_http_setting('post', arguments[0], {'Content-Type': 'application/json', 'Accept': 'application/json'}) },
-		blob(){ return get_http_setting(Option({as:'blob'})) },
 		export(){ return get_http_evaluated_module },
-		import(){ return get_http_evaluated_module },
-		module(){ return get_http_evaluated_module },
 		get(){ return get_http_setting(arguments[0]) },
-		post(){ return get_http_setting(arguments[0]) },
-		search(){ return get_http_setting(arguments[0]) },
-		put(){ return get_http_setting(arguments[0]) },
+		head(){ return get_http_setting(arguments[0]) },
+		import(){ return get_http_evaluated_module },
 		locator(){ return get_locator() },
 		load(){ return get_http_load },
-		type(){ return get_http_content_type() },
+		module(){ return get_http_evaluated_module },
 		Option(){ return Option },
-		Response(){ return Response }
+		post(){ return get_http_setting(arguments[0]) },
+		put(){ return get_http_setting(arguments[0]) },
+		Response(){ return Response },
+		search(){ return get_http_setting(arguments[0]) },
+		type(){ return get_http_content_type() }
 	}
 
 	//exports
 	return Assets(new Proxy(get_http_resource, {
 		get(o, field){
 			if(field in HTTPModule) return HTTPModule[field](field)
-			else if(field in o) return (typeof (o[field]) ? o[field].bind(o):o[field])
+			else if(field in o) return (typeof(o[field])==='function') ? o[field].bind(o):o[field]
 			else if(field === Symbol.toPrimitive) return undefined
 			return null
 		},

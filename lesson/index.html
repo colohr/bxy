@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+    <title></title>
+    <script defer meta="meta/package-sample.meta" src="https://www.va11y.com/node_modules/bxy/web/modules.js"></script>
+    <script> window.addEventListener('modules',async function on_modules(event){
+    	const Design = await window.modules.import.class('Design')
+		Design.load()
+		const design = await window.modules.wait('modules.design',true)
+		for(const div of window.document.body.gui.container.all('div')){
+			div.style.background=design.colors.random()
+		}
+	},false)</script>
+	<style>
+		body{
+
+		}
+		#container{
+			background:black;
+		}
+		#container > div{
+			display: inline-block;
+			height:10vmin;
+			width: 10vmin;
+		}
+
+	</style>
+</head>
+<body>
+<div id="container">
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+	<div></div>
+</div>
+
+
+
+<noscript><article style="padding:40px;font-family:sans-serif;"><header><h1></h1></header><p>Enable JavaScript to properly load this site.</p></article></noscript>
+</body>
+</html>

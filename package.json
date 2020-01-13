@@ -1,10 +1,12 @@
 {
+  "author": "colohr",
   "browser": "./web/modules.js",
-  "name": "bxy",
-  "version": "0.1.114",
+  "bugs": {
+    "url": "https://github.com/colohr/bxy/issues"
+  },
   "dependencies": {
     "localforage": "^1.7.3",
-    "lit-html": "^1.1.1",
+    "lit-html": "^1.1.2",
     "bxy.font": "^0.0.3"
   },
   "description": "Web Modules for the Browser",
@@ -12,24 +14,13 @@
     "web": "web",
     "package": "package"
   },
-  "main": "./package/index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/colohr/bxy.git"
-  },
-  "author": "colohr",
-  "license": "ISC",
   "engines": {
-    "node": ">=10.0.0 <11.0.0",
+    "node": ">=10.0.0",
     "npm": "~6.4.1"
   },
-  "peerDependencies":   {
-    "luxon": "^1.10.0",
-    "d3": "^5.7.0",
-    "moment": "^2.24.0",
-    "navigo": "^7.1.2",
-    "@turf/turf": "^5.1.6"
-  },
+  "homepage": "https://github.com/colohr/bxy#readme",
+  "license": "ISC",
+  "main": "./package/index.js",
   "modules": {
     "Calendar": {
       "mode": {
@@ -40,7 +31,9 @@
           "name": "luxon",
           "external": "https://unpkg.com/luxon/build/cjs-browser/luxon.js",
           "internal": "node_modules/build/cjs-browser/luxon.js",
-          "wait": ["luxon"],
+          "wait": [
+            "luxon"
+          ],
           "notation": "luxon",
           "variable": "luxon"
         },
@@ -48,7 +41,9 @@
           "name": "moment",
           "external": "https://unpkg.com/moment/min/moment.min.js",
           "internal": "node_modules/min/moment.min.js",
-          "wait": ["moment"],
+          "wait": [
+            "moment"
+          ],
           "notation": "moment",
           "variable": "moment"
         }
@@ -64,7 +59,9 @@
           "name": "@turf/turf",
           "external": "https://unpkg.com/@turf/turf/turf.min.js",
           "internal": "node_modules/@turf/turf/turf.min.js",
-          "wait": ["turf"],
+          "wait": [
+            "turf"
+          ],
           "notation": "turf",
           "variable": "turf"
         }
@@ -75,14 +72,16 @@
         "define": false,
         "entry": {
           "internal": "web/script/templet/index.js",
-          "wait": [  "modules.Templet"],
+          "wait": [
+            "modules.Templet"
+          ],
           "notation": "Templet"
         }
       },
       "node_modules": [
         {
           "name": "lit-html",
-          "external": "https://unpkg.com/lit-html@1.1.1/lit-html.js",
+          "external": "https://unpkg.com/lit-html@1.1.2/lit-html.js",
           "internal": "node_modules/lit-html/lit-html.js",
           "es": true,
           "notation": "lit"
@@ -96,8 +95,14 @@
       "scripts": [
         {
           "location": "script/meta/assets.js",
-          "bundles": ["esprima","js-yaml"],
-          "wait": ["modules.esprima","modules.yaml"]
+          "bundles": [
+            "esprima",
+            "js-yaml"
+          ],
+          "wait": [
+            "modules.esprima",
+            "modules.yaml"
+          ]
         }
       ]
     },
@@ -111,7 +116,9 @@
           "name": "navigo",
           "external": "https://unpkg.com/navigo/lib/navigo.min.js",
           "internal": "node_modules/lib/navigo.min.js",
-          "wait": ["Navigo"],
+          "wait": [
+            "Navigo"
+          ],
           "notation": "Navigo",
           "variable": "Navigo"
         }
@@ -129,7 +136,9 @@
           "internal": "node_modules/localforage/dist/localforage.nopromises.min.js",
           "notation": "localforage",
           "variable": "localforage",
-          "wait": ["localforage"]
+          "wait": [
+            "localforage"
+          ]
         }
       ]
     },
@@ -144,13 +153,24 @@
           "internal": "node_modules/d3/dist/d3.min.js",
           "notation": "d3",
           "variable": "d3",
-          "wait": ["d3"]
+          "wait": [
+            "d3"
+          ]
         }
       ]
     }
   },
-  "bugs": {
-    "url": "https://github.com/colohr/bxy/issues"
+  "name": "bxy",
+  "peerDependencies": {
+    "luxon": "^1.10.0",
+    "d3": "^5.7.0",
+    "moment": "^2.24.0",
+    "navigo": "^7.1.2",
+    "@turf/turf": "^5.1.6"
   },
-  "homepage": "https://github.com/colohr/bxy#readme"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/colohr/bxy.git"
+  },
+  "version": "0.1.115"
 }
